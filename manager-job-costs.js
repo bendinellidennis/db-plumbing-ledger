@@ -1,0 +1,17 @@
+(()=>{
+'use strict';
+let M,basePut,baseOpenJob,baseOpenQuote;
+const wait=()=>{M=window.DBM;const form=document.getElementById('dbmJobForm');if(!M?.mPut||!M?.openJob||!form)return setTimeout(wait,100);init(form)};
+const n=v=>Number(v||0);
+function init(form){if(M.__jobCostsReady)return;M.__jobCostsReady=true;injectStyles();injectFields(form);wrapPut();wrapOpeners()}
+function injectStyles(){const s=document.createElement('style');s.textContent=`
+#dbmRealCostFields{margin-top:12px;padding-top:12px;border-top:1px solid #e3ebf1}.dbm-real-cost-title{font-weight:850;margin-bottom:6px}.dbm-real-cost-sub{font-size:10px;color:#64748b;margin-bottom:8px}.dbm-real-cost-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dbm-real-cost-grid label{margin:0}@media(max-width:430px){#dbmRealCostFields input{font-size:17px!important}}
+`;document.head.appendChild(s)}
+function injectFields(form){if(document.getElementById('dbmRealCostFields'))return;const notes=document.getElementById('dbmJobNotes')?.closest('label');if(!notes)return;notes.insertAdjacentHTML('beforebegin',`<section id="dbmRealCostFields"><div class="dbm-real-cost-title">Tempo e costi reali</div><div class="dbm-real-cost-sub">Servono per capire quanto rende davvero il lavoro. Non modificano il prezzo al cliente.</div><div class="dbm-real-cost-grid"><label>Ore lavorate<input id="dbmWorkHours" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></label><label>Minuti<input id="dbmWorkMinutes" type="number" min="0" max="59" step="5" inputmode="numeric" placeholder="0"></label><label>Parcheggio €<input id="dbmParkingCost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label><label>Trasporto €<input id="dbmTransportCost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label></div><label>Altri costi €<input id="dbmOtherRealCost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label></section>`)}
+function readMeta(){return{workMinutes:Math.max(0,Math.round(n(document.getElementById('dbmWorkHours')?.value)*60+n(document.getElementById('dbmWorkMinutes')?.value))),parkingCost:Math.max(0,n(document.getElementById('dbmParkingCost')?.value)),transportCost:Math.max(0,n(document.getElementById('dbmTransportCost')?.value)),otherRealCost:Math.max(0,n(document.getElementById('dbmOtherRealCost')?.value))}}
+function fillMeta(j={}){const mins=Math.max(0,n(j.workMinutes));const h=document.getElementById('dbmWorkHours'),m=document.getElementById('dbmWorkMinutes'),p=document.getElementById('dbmParkingCost'),t=document.getElementById('dbmTransportCost'),o=document.getElementById('dbmOtherRealCost');if(h)h.value=mins?Math.floor(mins/60):'';if(m)m.value=mins?mins%60:'';if(p)p.value=n(j.parkingCost)||'';if(t)t.value=n(j.transportCost)||'';if(o)o.value=n(j.otherRealCost)||''}
+function showFields(show){const x=document.getElementById('dbmRealCostFields');if(x)x.style.display=show?'block':'none'}
+function wrapPut(){basePut=M.mPut.bind(M);M.mPut=async(store,val)=>{if(store==='jobs'&&val?.id&&document.getElementById('dbmJobDialog')?.open&&!String(val.status||'').startsWith('quote'))Object.assign(val,readMeta());return basePut(store,val)}}
+function wrapOpeners(){baseOpenJob=M.openJob.bind(M);M.openJob=async id=>{await baseOpenJob(id);showFields(true);const j=id?await M.mOne('jobs',id):{};fillMeta(j||{})};if(M.openQuote){baseOpenQuote=M.openQuote.bind(M);M.openQuote=async id=>{await baseOpenQuote(id);showFields(false);fillMeta({})}}}
+wait();
+})();
