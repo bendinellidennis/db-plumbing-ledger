@@ -1,0 +1,21 @@
+(()=>{
+'use strict';
+let M,snapshot=null,busy=false,timer=null;
+const wait=()=>{M=window.DBM;if(!M?.setting||!document.getElementById('dbmMarketingDialog'))return setTimeout(wait,120);init()};
+const n=v=>Number(v||0);
+const money=v=>M.money?M.money(v):`€${n(v).toFixed(2)}`;
+async function loadSnapshot(){try{const r=await fetch(`meta-campaigns.json?ts=${Date.now()}`,{cache:'no-store'});if(!r.ok)throw new Error('snapshot');const j=await r.json();snapshot=j&&Array.isArray(j.campaigns)?j:null}catch{snapshot=null}}
+async function manualCampaigns(){try{const raw=await M.setting('marketingCampaignsV1','[]');const a=typeof raw==='string'?JSON.parse(raw):raw;return Array.isArray(a)?a:[]}catch{return[]}}
+function fmtDate(s){if(!s)return'—';const d=new Date(s);if(Number.isNaN(d.getTime()))return s;return d.toLocaleString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function schedule(){clearTimeout(timer);timer=setTimeout(apply,60)}
+async function apply(){if(busy||!snapshot)return;const dlg=document.getElementById('dbmMarketingDialog');if(!dlg)return;busy=true;try{
+ const meta=snapshot.campaigns||[],metaSpend=meta.reduce((s,c)=>s+n(c.spend),0),manual=await manualCampaigns(),otherSpend=manual.filter(c=>c.channel!=='Facebook Ads').reduce((s,c)=>s+n(c.spend),0);
+ const stats=document.getElementById('dbmMarketingStats');if(stats){const first=stats.querySelector('.dbm-marketing-stat b');if(first)first.textContent=money(metaSpend+otherSpend)}
+ const rows=[...document.querySelectorAll('#dbmMarketingChannels .dbm-channel-row')];const fb=rows.find(r=>r.querySelector('.dbm-channel-row-top b')?.textContent.trim()==='Facebook Ads');if(fb){const mini=[...fb.querySelectorAll('.dbm-channel-mini div')];const spendCell=mini.find(x=>x.querySelector('span')?.textContent.trim()==='Spesa');if(spendCell?.querySelector('b'))spendCell.querySelector('b').textContent=money(metaSpend);let note=fb.querySelector('.dbm-marketing-note');if(!note){note=document.createElement('div');note.className='dbm-marketing-note';fb.appendChild(note)}const leads=n(mini.find(x=>x.querySelector('span')?.textContent.trim()==='Contatti')?.querySelector('b')?.textContent);note.textContent=`Meta reale · ${meta.reduce((s,c)=>s+n(c.clicks),0)} clic · ${meta.reduce((s,c)=>s+n(c.impressions),0)} impression${leads?` · costo/contatto ${money(metaSpend/leads)}`:''}`}
+ const list=document.getElementById('dbmCampaignList');if(list){list.querySelectorAll('[data-meta-campaign]').forEach(x=>x.remove());const frag=document.createDocumentFragment();meta.slice().sort((a,b)=>String(b.start||'').localeCompare(String(a.start||''))).forEach(c=>{const div=document.createElement('div');div.className='dbm-campaign-row';div.setAttribute('data-meta-campaign',c.id);div.innerHTML=`<b>${M.esc?M.esc(c.name):c.name}</b><small>Meta reale · ${c.objective||'—'} · spesa ${money(c.spend)} · ${n(c.clicks)} clic · ${n(c.impressions)} impression · CPC ${money(c.cpc)}</small>`;frag.appendChild(div)});list.prepend(frag)}
+ const notes=[...dlg.querySelectorAll('.dbm-marketing-note')];const footer=notes.find(x=>x.textContent.includes('La spesa campagne viene inserita manualmente'));if(footer)footer.textContent=`Facebook Ads usa dati reali Meta/Windsor (ultimo aggiornamento ${fmtDate(snapshot.syncedAt)}). Contatti, preventivi, clienti acquisiti e valore lavori restano collegati ai dati reali salvati nell’app. Gli altri canali restano gestiti localmente.`;
+ let sync=document.getElementById('dbmMetaSyncStatus');if(!sync){sync=document.createElement('div');sync.id='dbmMetaSyncStatus';sync.className='dbm-marketing-note';const h=dlg.querySelector('.dialog-head');h?.insertAdjacentElement('afterend',sync)}if(sync)sync.textContent=`Meta collegato · ${meta.length} campagne · spesa ${money(metaSpend)} · ultimo sync ${fmtDate(snapshot.syncedAt)}`;
+ }finally{busy=false}}
+async function init(){if(window.__dbmMetaSyncReady)return;window.__dbmMetaSyncReady=true;await loadSnapshot();const dlg=document.getElementById('dbmMarketingDialog');if(dlg)new MutationObserver(schedule).observe(dlg,{childList:true,subtree:true,characterData:true});document.getElementById('dbmMarketingOpen')?.addEventListener('click',()=>setTimeout(apply,120));schedule()}
+wait();
+})();
