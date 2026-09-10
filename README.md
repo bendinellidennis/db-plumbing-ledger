@@ -12,3 +12,5 @@ Small offline-first ledger for Dennis Bendinelli / DB Plumbing Services.
 - Installable PWA when hosted over HTTPS (e.g. GitHub Pages)
 
 Important: VAT fields are bookkeeping aids only. Actual VAT deductibility and filing treatment should follow MTCA rules and professional advice.
+
+Deployment refresh: 2026-09-10.
