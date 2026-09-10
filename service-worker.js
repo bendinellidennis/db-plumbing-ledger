@@ -1,4 +1,4 @@
-const CACHE='db-ledger-v16';
+const CACHE='db-ledger-v17';
 const ASSETS=['./','index.html','styles.css','refine.css','manager.css','premium.css','app.js','manager-safe-loader.js','manager-core.js','manager-loader.js','manager-jobs.js','manager-job-client-add.js','manager-materials.js','manager-import.js','manager-photos.js','manager-search.js','manager-purchase-search.js','manager-purchase-mobile-fix.js','manager-office.js','manager-smart.js','manifest.webmanifest','db-brand-mark.svg','app-icon.svg'];
 
 self.addEventListener('install',e=>{
@@ -11,8 +11,6 @@ self.addEventListener('activate',e=>{
     const keys=await caches.keys();
     await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
     await self.clients.claim();
-    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-    await Promise.all(windows.map(c=>c.navigate(c.url).catch(()=>null)));
   })());
 });
 
