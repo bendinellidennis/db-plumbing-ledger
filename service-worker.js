@@ -1,5 +1,5 @@
-const CACHE='db-ledger-v13';
-const ASSETS=['./','index.html','styles.css','refine.css','manager.css','premium.css','app.js','manager-safe-loader.js','manager-core.js','manager-loader.js','manager-jobs.js','manager-materials.js','manager-import.js','manager-photos.js','manager-search.js','manager-purchase-search.js','manager-office.js','manager-smart.js','manifest.webmanifest','db-brand-mark.svg','app-icon.svg'];
+const CACHE='db-ledger-v14';
+const ASSETS=['./','index.html','styles.css','refine.css','manager.css','premium.css','app.js','manager-safe-loader.js','manager-core.js','manager-loader.js','manager-jobs.js','manager-materials.js','manager-import.js','manager-photos.js','manager-search.js','manager-purchase-search.js','manager-purchase-mobile-fix.js','manager-office.js','manager-smart.js','manifest.webmanifest','db-brand-mark.svg','app-icon.svg'];
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
