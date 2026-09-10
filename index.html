@@ -25,155 +25,23 @@
     </div>
     <button id="installBtn" class="ghost hidden">Installa</button>
   </header>
-
   <main>
     <section id="dashboard" class="view active">
-      <div class="period-row">
-        <label>Anno
-          <select id="yearFilter"></select>
-        </label>
-        <span id="vatBadge" class="badge">Article 11</span>
-      </div>
-
-      <div class="cards">
-        <article class="card"><span>Entrate</span><strong id="incomeTotal">€0.00</strong></article>
-        <article class="card"><span>Spese</span><strong id="expenseTotal">€0.00</strong></article>
-        <article class="card"><span>Utile lordo</span><strong id="profitTotal">€0.00</strong></article>
-        <article class="card"><span>Da incassare</span><strong id="unpaidTotal">€0.00</strong></article>
-      </div>
-
-      <div id="vatCard" class="panel hidden">
-        <h2>VAT</h2>
-        <div class="mini-grid">
-          <div><span>VAT vendite</span><strong id="vatSales">€0.00</strong></div>
-          <div><span>VAT acquisti registrata</span><strong id="vatPurchases">€0.00</strong></div>
-          <div><span>Saldo indicativo</span><strong id="vatBalance">€0.00</strong></div>
-        </div>
-        <p class="hint">Importi di controllo interno. La recuperabilità effettiva della VAT dipende dal documento e dalle regole applicabili.</p>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title-row"><h2>Movimenti recenti</h2><button id="openAllBtn" class="link-btn">Vedi tutti</button></div>
-        <div id="recentList" class="list"></div>
-      </div>
+      <div class="period-row"><label>Anno <select id="yearFilter"></select></label><span id="vatBadge" class="badge">Article 11</span></div>
+      <div class="cards"><article class="card"><span>Entrate</span><strong id="incomeTotal">€0.00</strong></article><article class="card"><span>Spese</span><strong id="expenseTotal">€0.00</strong></article><article class="card"><span>Utile lordo</span><strong id="profitTotal">€0.00</strong></article><article class="card"><span>Da incassare</span><strong id="unpaidTotal">€0.00</strong></article></div>
+      <div id="vatCard" class="panel hidden"><h2>VAT</h2><div class="mini-grid"><div><span>VAT vendite</span><strong id="vatSales">€0.00</strong></div><div><span>VAT acquisti registrata</span><strong id="vatPurchases">€0.00</strong></div><div><span>Saldo indicativo</span><strong id="vatBalance">€0.00</strong></div></div><p class="hint">Importi di controllo interno. La recuperabilità effettiva della VAT dipende dal documento e dalle regole applicabili.</p></div>
+      <div class="panel"><div class="panel-title-row"><h2>Movimenti recenti</h2><button id="openAllBtn" class="link-btn">Vedi tutti</button></div><div id="recentList" class="list"></div></div>
     </section>
-
-    <section id="entries" class="view">
-      <div class="panel-title-row"><h1>Movimenti</h1><button id="addEntryTop" class="primary small">+ Nuovo</button></div>
-      <div class="segmented">
-        <button data-filter="all" class="seg active">Tutti</button>
-        <button data-filter="income" class="seg">Entrate</button>
-        <button data-filter="expense" class="seg">Spese</button>
-        <button data-filter="unpaid" class="seg">Da incassare</button>
-      </div>
-      <div id="entryList" class="list"></div>
-    </section>
-
-    <section id="clients" class="view">
-      <div class="panel-title-row"><h1>Clienti</h1><button id="addClientTop" class="primary small">+ Cliente</button></div>
-      <div id="clientList" class="list"></div>
-    </section>
-
-    <section id="reports" class="view">
-      <h1>Report & Backup</h1>
-      <div class="panel">
-        <h2>Esporta</h2>
-        <button id="exportCsv" class="primary full">Esporta movimenti CSV</button>
-        <button id="exportClientsCsv" class="secondary full">Esporta clienti CSV</button>
-        <button id="exportBackup" class="secondary full">Backup completo JSON</button>
-      </div>
-      <div class="panel">
-        <h2>Ripristina backup</h2>
-        <input id="importBackup" type="file" accept="application/json,.json" />
-        <p class="hint">Il ripristino sostituisce i dati presenti su questo dispositivo.</p>
-      </div>
-      <div class="panel danger-panel">
-        <h2>Archivio</h2>
-        <button id="clearData" class="danger full">Cancella tutti i dati</button>
-      </div>
-    </section>
-
-    <section id="settings" class="view">
-      <h1>Impostazioni</h1>
-      <div class="panel form-grid">
-        <label>Nome legale<input id="legalName" value="Dennis Bendinelli" /></label>
-        <label>Nome commerciale<input id="tradeName" value="DB Plumbing Services" /></label>
-        <label>VAT status
-          <select id="vatStatus">
-            <option value="article11">Article 11 · Exempt</option>
-            <option value="article10">Article 10 · Taxable</option>
-          </select>
-        </label>
-        <label>Data effettiva Article 10<input id="article10Date" type="date" /></label>
-        <label>VAT standard %<input id="vatRate" type="number" min="0" step="0.01" value="18" /></label>
-        <button id="saveSettings" class="primary full">Salva impostazioni</button>
-      </div>
-      <div class="panel">
-        <h2>Come funziona</h2>
-        <p class="hint">I dati restano nel browser del tuo iPhone. Fai un backup JSON regolare. Questa app non invia dati a server esterni.</p>
-      </div>
-    </section>
+    <section id="entries" class="view"><div class="panel-title-row"><h1>Movimenti</h1><button id="addEntryTop" class="primary small">+ Nuovo</button></div><div class="segmented"><button data-filter="all" class="seg active">Tutti</button><button data-filter="income" class="seg">Entrate</button><button data-filter="expense" class="seg">Spese</button><button data-filter="unpaid" class="seg">Da incassare</button></div><div id="entryList" class="list"></div></section>
+    <section id="clients" class="view"><div class="panel-title-row"><h1>Clienti</h1><button id="addClientTop" class="primary small">+ Cliente</button></div><div id="clientList" class="list"></div></section>
+    <section id="reports" class="view"><h1>Report & Backup</h1><div class="panel"><h2>Esporta</h2><button id="exportCsv" class="primary full">Esporta movimenti CSV</button><button id="exportClientsCsv" class="secondary full">Esporta clienti CSV</button><button id="exportBackup" class="secondary full">Backup completo JSON</button></div><div class="panel"><h2>Ripristina backup</h2><input id="importBackup" type="file" accept="application/json,.json" /><p class="hint">Il ripristino sostituisce i dati presenti su questo dispositivo.</p></div><div class="panel danger-panel"><h2>Archivio</h2><button id="clearData" class="danger full">Cancella tutti i dati</button></div></section>
+    <section id="settings" class="view"><h1>Impostazioni</h1><div class="panel form-grid"><label>Nome legale<input id="legalName" value="Dennis Bendinelli" /></label><label>Nome commerciale<input id="tradeName" value="DB Plumbing Services" /></label><label>VAT status<select id="vatStatus"><option value="article11">Article 11 · Exempt</option><option value="article10">Article 10 · Taxable</option></select></label><label>Data effettiva Article 10<input id="article10Date" type="date" /></label><label>VAT standard %<input id="vatRate" type="number" min="0" step="0.01" value="18" /></label><button id="saveSettings" class="primary full">Salva impostazioni</button></div><div class="panel"><h2>Come funziona</h2><p class="hint">I dati restano nel browser del tuo iPhone. Fai un backup JSON regolare. Questa app non invia dati a server esterni.</p></div></section>
   </main>
-
-  <nav class="bottom-nav">
-    <button data-view="dashboard" class="nav active">Home</button>
-    <button data-view="entries" class="nav">Movimenti</button>
-    <button id="quickAdd" class="quick">＋</button>
-    <button data-view="clients" class="nav">Clienti</button>
-    <button data-view="reports" class="nav">Report</button>
-    <button data-view="settings" class="nav">Setup</button>
-  </nav>
-
-  <dialog id="entryDialog">
-    <form id="entryForm" method="dialog">
-      <div class="dialog-head"><h2 id="entryDialogTitle">Nuovo movimento</h2><button type="button" class="icon" data-close="entryDialog">×</button></div>
-      <input id="entryId" type="hidden" />
-      <div class="segmented type-choice">
-        <button type="button" data-type="income" class="seg active">Entrata</button>
-        <button type="button" data-type="expense" class="seg">Spesa</button>
-      </div>
-      <input id="entryType" type="hidden" value="income" />
-      <label>Data<input id="entryDate" type="date" required /></label>
-      <label id="clientField">Cliente<select id="entryClient"></select></label>
-      <label>Descrizione<input id="entryDescription" placeholder="Es. Repair leaking WC" required /></label>
-      <label>Località<input id="entryLocation" placeholder="Es. Sliema" /></label>
-      <div class="two-cols">
-        <label>Importo totale €<input id="entryAmount" type="number" step="0.01" min="0" required /></label>
-        <label>VAT inclusa €<input id="entryVat" type="number" step="0.01" min="0" value="0" /></label>
-      </div>
-      <label id="paymentStatusField">Stato pagamento
-        <select id="entryPaid"><option value="paid">Pagato</option><option value="unpaid">Da incassare</option></select>
-      </label>
-      <label>Metodo pagamento
-        <select id="entryMethod"><option>Cash</option><option>Bank transfer</option><option>Revolut</option><option>Card</option><option>Other</option></select>
-      </label>
-      <label>Numero documento<input id="entryDocument" placeholder="Es. INV-001 / Receipt" /></label>
-      <label>Foto ricevuta / documento<input id="entryReceipt" type="file" accept="image/*,application/pdf" /></label>
-      <div id="receiptCurrent" class="hint"></div>
-      <label>Note<textarea id="entryNotes" rows="3"></textarea></label>
-      <button class="primary full" value="save">Salva</button>
-      <button id="deleteEntry" type="button" class="danger full hidden">Elimina movimento</button>
-    </form>
-  </dialog>
-
-  <dialog id="clientDialog">
-    <form id="clientForm" method="dialog">
-      <div class="dialog-head"><h2>Cliente</h2><button type="button" class="icon" data-close="clientDialog">×</button></div>
-      <input id="clientId" type="hidden" />
-      <label>Nome / Azienda<input id="clientName" required /></label>
-      <label>Telefono<input id="clientPhone" type="tel" /></label>
-      <label>Email<input id="clientEmail" type="email" /></label>
-      <label>Località<input id="clientLocation" /></label>
-      <label>Note<textarea id="clientNotes" rows="3"></textarea></label>
-      <button class="primary full" value="save">Salva cliente</button>
-      <button id="deleteClient" type="button" class="danger full hidden">Elimina cliente</button>
-    </form>
-  </dialog>
-
+  <nav class="bottom-nav"><button data-view="dashboard" class="nav active">Home</button><button data-view="entries" class="nav">Movimenti</button><button id="quickAdd" class="quick">＋</button><button data-view="clients" class="nav">Clienti</button><button data-view="reports" class="nav">Report</button><button data-view="settings" class="nav">Setup</button></nav>
+  <dialog id="entryDialog"><form id="entryForm" method="dialog"><div class="dialog-head"><h2 id="entryDialogTitle">Nuovo movimento</h2><button type="button" class="icon" data-close="entryDialog">×</button></div><input id="entryId" type="hidden" /><div class="segmented type-choice"><button type="button" data-type="income" class="seg active">Entrata</button><button type="button" data-type="expense" class="seg">Spesa</button></div><input id="entryType" type="hidden" value="income" /><label>Data<input id="entryDate" type="date" required /></label><label id="clientField">Cliente<select id="entryClient"></select></label><label>Descrizione<input id="entryDescription" placeholder="Es. Repair leaking WC" required /></label><label>Località<input id="entryLocation" placeholder="Es. Sliema" /></label><div class="two-cols"><label>Importo totale €<input id="entryAmount" type="number" step="0.01" min="0" required /></label><label>VAT inclusa €<input id="entryVat" type="number" step="0.01" min="0" value="0" /></label></div><label id="paymentStatusField">Stato pagamento<select id="entryPaid"><option value="paid">Pagato</option><option value="unpaid">Da incassare</option></select></label><label>Metodo pagamento<select id="entryMethod"><option>Cash</option><option>Bank transfer</option><option>Revolut</option><option>Card</option><option>Other</option></select></label><label>Numero documento<input id="entryDocument" placeholder="Es. INV-001 / Receipt" /></label><label>Foto ricevuta / documento<input id="entryReceipt" type="file" accept="image/*,application/pdf" /></label><div id="receiptCurrent" class="hint"></div><label>Note<textarea id="entryNotes" rows="3"></textarea></label><button class="primary full" value="save">Salva</button><button id="deleteEntry" type="button" class="danger full hidden">Elimina movimento</button></form></dialog>
+  <dialog id="clientDialog"><form id="clientForm" method="dialog"><div class="dialog-head"><h2>Cliente</h2><button type="button" class="icon" data-close="clientDialog">×</button></div><input id="clientId" type="hidden" /><label>Nome / Azienda<input id="clientName" required /></label><label>Telefono<input id="clientPhone" type="tel" /></label><label>Email<input id="clientEmail" type="email" /></label><label>Località<input id="clientLocation" /></label><label>Note<textarea id="clientNotes" rows="3"></textarea></label><button class="primary full" value="save">Salva cliente</button><button id="deleteClient" type="button" class="danger full hidden">Elimina cliente</button></form></dialog>
   <script src="app.js"></script>
   <script src="manager-core.js"></script>
-  <script src="manager-jobs.js"></script>
-  <script src="manager-materials.js"></script>
-  <script src="manager-office.js"></script>
+  <script src="manager-loader.js"></script>
 </body>
 </html>
