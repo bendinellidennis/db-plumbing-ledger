@@ -3,7 +3,7 @@
   "short_name":"DB Ledger",
   "start_url":"./",
   "display":"standalone",
-  "background_color":"#f4f6f8",
-  "theme_color":"#111827",
+  "background_color":"#eef4f9",
+  "theme_color":"#0b1f35",
   "icons":[]
 }
