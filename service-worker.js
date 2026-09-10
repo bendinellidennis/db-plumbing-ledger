@@ -1,5 +1,42 @@
-const CACHE='db-ledger-v11';
+const CACHE='db-ledger-v12';
 const ASSETS=['./','index.html','styles.css','refine.css','manager.css','premium.css','app.js','manager-safe-loader.js','manager-core.js','manager-loader.js','manager-jobs.js','manager-materials.js','manager-import.js','manager-photos.js','manager-search.js','manager-office.js','manager-smart.js','manifest.webmanifest','db-brand-mark.svg','app-icon.svg'];
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)))});
-self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
-self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request))));
+
+self.addEventListener('install',e=>{
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
+});
+
+self.addEventListener('activate',e=>{
+  e.waitUntil((async()=>{
+    const keys=await caches.keys();
+    await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+    await self.clients.claim();
+    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    await Promise.all(windows.map(c=>c.navigate(c.url).catch(()=>null)));
+  })());
+});
+
+self.addEventListener('message',e=>{
+  if(e.data==='SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('fetch',e=>{
+  if(e.request.mode==='navigate'){
+    e.waitUntil(self.registration.update().catch(()=>{}));
+    e.respondWith(
+      fetch(e.request,{cache:'no-store'}).then(r=>{
+        const copy=r.clone();
+        caches.open(CACHE).then(c=>c.put(e.request,copy));
+        return r;
+      }).catch(()=>caches.match(e.request).then(r=>r||caches.match('./')))
+    );
+    return;
+  }
+  e.respondWith(
+    fetch(e.request).then(r=>{
+      const copy=r.clone();
+      caches.open(CACHE).then(c=>c.put(e.request,copy));
+      return r;
+    }).catch(()=>caches.match(e.request))
+  );
+});
