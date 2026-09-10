@@ -1,0 +1,42 @@
+{
+  "source": "Meta Ads via Windsor.ai",
+  "account": "Dennis Bendinelli",
+  "accountId": "286930198114293",
+  "syncedAt": "2026-09-11T01:37:00+02:00",
+  "dateFrom": "2026-09-05",
+  "dateTo": "2026-09-10",
+  "campaigns": [
+    {
+      "id": "52604500034819",
+      "name": "[05/09/2026] Promozione di https://api.whatsapp.com/send",
+      "channel": "Facebook Ads",
+      "objective": "MESSAGES",
+      "status": "real",
+      "start": "2026-09-05",
+      "end": "2026-09-07",
+      "spend": 10.65,
+      "impressions": 7152,
+      "clicks": 79,
+      "ctr": 0.0110458613,
+      "cpc": 0.1348101266,
+      "reportedLeads": null,
+      "reportedMessagingConversations": null
+    },
+    {
+      "id": "52605056930019",
+      "name": "[08/09/2026] Promozione di DB Plumbing | Malta | Professional Repair | Sep26",
+      "channel": "Facebook Ads",
+      "objective": "LEAD_GENERATION",
+      "status": "real",
+      "start": "2026-09-08",
+      "end": "2026-09-10",
+      "spend": 7.08,
+      "impressions": 1173,
+      "clicks": 65,
+      "ctr": 0.0554134697,
+      "cpc": 0.1089230769,
+      "reportedLeads": null,
+      "reportedMessagingConversations": null
+    }
+  ]
+}
