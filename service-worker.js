@@ -1,4 +1,4 @@
-const CACHE='db-ledger-v26';
+const CACHE='db-ledger-v27';
 const ASSETS=['./','index.html','styles.css','refine.css','manager.css','premium.css','app.js','manager-safe-loader.js','manager-core.js','manager-loader.js','manager-jobs.js','manager-job-client-add.js','manager-properties.js','manager-materials.js','manager-import.js','manager-photos.js','manager-search.js','manager-purchase-search.js','manager-purchase-mobile-fix.js','manager-office.js','manager-pricelists.js','manager-smart.js','manager-workflow.js','manager-quotes-nav.js','manager-agenda.js','manager-maintenance.js','manifest.webmanifest','db-brand-mark.svg','app-icon.svg'];
 
 self.addEventListener('install',e=>{
