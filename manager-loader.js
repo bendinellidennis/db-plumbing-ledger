@@ -1,0 +1,1 @@
+(()=>{const wait=()=>{if(window.DBM?.db&&document.getElementById('jobsV2'))return load(['manager-jobs.js','manager-materials.js','manager-office.js']);setTimeout(wait,50)};const load=async files=>{for(const src of files)await new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.body.appendChild(s)})};wait()})();
