@@ -1,5 +1,5 @@
-const CACHE='db-ledger-v28';
-const ASSETS=['./','index.html','styles.css','refine.css','manager.css','premium.css','app.js','manager-safe-loader.js','manager-core.js','manager-loader.js','manager-jobs.js','manager-job-client-add.js','manager-properties.js','manager-materials.js','manager-import.js','manager-photos.js','manager-search.js','manager-purchase-search.js','manager-purchase-mobile-fix.js','manager-office.js','manager-pricelists.js','manager-smart.js','manager-workflow.js','manager-quotes-nav.js','manager-agenda.js','manager-maintenance.js','manager-statistics.js','manifest.webmanifest','db-brand-mark.svg','app-icon.svg'];
+const CACHE='db-ledger-v29';
+const ASSETS=['./','index.html','styles.css','refine.css','manager.css','premium.css','app.js','manager-safe-loader.js','manager-core.js','manager-loader.js','manager-jobs.js','manager-job-client-add.js','manager-properties.js','manager-materials.js','manager-import.js','manager-photos.js','manager-search.js','manager-purchase-search.js','manager-purchase-mobile-fix.js','manager-office.js','manager-pricelists.js','manager-smart.js','manager-workflow.js','manager-quotes-nav.js','manager-agenda.js','manager-maintenance.js','manager-statistics.js','manager-job-costs.js','manifest.webmanifest','db-brand-mark.svg','app-icon.svg'];
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
