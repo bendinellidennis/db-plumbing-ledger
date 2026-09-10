@@ -1,4 +1,6 @@
 /* Small approved visual refinements only */
 .brand-mark-wrap{width:82px;height:54px;flex:0 0 82px;padding:3px 6px}.subtitle{font-size:12px;font-weight:650;color:#e3f3fc;letter-spacing:.005em}
 #recentList .row{padding:14px 14px 14px 15px;border-color:#d7e4ed;background:linear-gradient(145deg,#fff,#f8fbfd);box-shadow:0 5px 14px rgba(13,49,78,.055);border-left:4px solid #9fcfe8}#recentList .row.income{border-left-color:#0b92d0}#recentList .row.expense{border-left-color:#f05a21}#recentList .row-title{font-size:14px;font-weight:800;color:#0b1f35}#recentList .row-sub{font-size:11.5px;line-height:1.35}#recentList .amount{font-size:15.5px;letter-spacing:-.015em}
-@media(max-width:430px){.brand-mark-wrap{width:76px;height:50px;flex-basis:76px}.subtitle{font-size:11px;font-weight:650}input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px!important}}
+@media(max-width:430px){.brand-mark-wrap{width:76px;height:50px;flex-basis:76px}.subtitle{font-size:11px;font-weight:650}}
+/* iPhone/Safari focus zoom guard: force form controls to at least 16px even when later module CSS uses compact fonts. */
+input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px!important}
