@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="DB Plumbing Services app icon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071725"/>
+      <stop offset="0.58" stop-color="#0b3152"/>
+      <stop offset="1" stop-color="#087bc1"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#20b6ff"/>
+      <stop offset="1" stop-color="#0069b8"/>
+    </linearGradient>
+    <linearGradient id="drop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#38c8ff"/>
+      <stop offset="1" stop-color="#0073c7"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg)"/>
+  <path d="M95 123h112c74 0 126 50 126 130s-52 136-126 136H95V123zm71 62v142h38c37 0 60-27 60-72s-23-70-60-70h-38z" fill="#f8fbff"/>
+  <path d="M281 123h94c68 0 104 29 104 78 0 35-20 59-54 69 41 9 61 36 61 76 0 57-43 87-112 87h-93V123zm67 58v65h28c25 0 39-10 39-32 0-23-14-33-40-33h-27zm0 119v75h32c30 0 45-13 45-38 0-24-15-37-46-37h-31z" fill="url(#blue)"/>
+  <path d="M168 176c-24 40-49 72-49 107 0 38 28 67 65 67s65-29 65-67c0-35-25-67-49-107l-16-27-16 27z" fill="url(#drop)" stroke="#dff5ff" stroke-width="8"/>
+  <path d="M113 352c72-5 126-30 173-76 49-48 94-60 155-56-65 18-108 51-152 92-49 46-100 68-176 70z" fill="#17a9ed"/>
+  <path d="M238 380c54-9 98-29 141-64 33-27 57-36 91-38-37 16-60 37-87 61-41 36-81 57-145 69z" fill="#d7dee5"/>
+  <path d="M326 400c43-12 80-31 117-62 20-17 34-24 49-28-20 18-30 33-45 48-32 31-66 49-121 61z" fill="#f05a21"/>
+</svg>
