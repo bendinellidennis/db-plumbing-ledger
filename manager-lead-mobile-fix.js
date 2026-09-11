@@ -7,6 +7,12 @@ function applyViewportGuard(){
   parts.push('maximum-scale=1');
   vp.setAttribute('content',parts.join(', '));
 }
+function markRows(){
+  const last=document.getElementById('dbmLeadLastContact');
+  const value=document.getElementById('dbmLeadValue');
+  const row=last?.closest('.two-cols');
+  if(row&&value&&row.contains(value))row.classList.add('dbm-lead-contact-row');
+}
 function injectStyles(){
   if(document.getElementById('dbmLeadMobileFixStyle'))return;
   const s=document.createElement('style');
@@ -18,12 +24,12 @@ function injectStyles(){
 .dbm-leads-dialog input,.dbm-leads-dialog select,.dbm-leads-dialog textarea{width:100%;max-width:100%;min-width:0;font-size:16px!important;transform:none!important;touch-action:manipulation}
 #dbmLeadLastContact,#dbmLeadValue{min-width:0!important}
 @media(max-width:430px){
-  #dbmLeadForm .two-cols:has(#dbmLeadLastContact){grid-template-columns:minmax(0,1fr)!important;gap:0!important}
-  #dbmLeadForm .two-cols:has(#dbmLeadLastContact)>label{width:100%;max-width:100%}
+  #dbmLeadForm .dbm-lead-contact-row{grid-template-columns:minmax(0,1fr)!important;gap:0!important}
+  #dbmLeadForm .dbm-lead-contact-row>label{width:100%;max-width:100%}
 }
 `;
   document.head.appendChild(s);
 }
-function init(){applyViewportGuard();injectStyles()}
+function init(){applyViewportGuard();injectStyles();markRows();new MutationObserver(markRows).observe(document.body,{subtree:true,childList:true})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
