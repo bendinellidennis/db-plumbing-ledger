@@ -24,6 +24,8 @@ function injectDashboard(dash){if(document.getElementById('dbmAgendaPanel'))retu
 function showSchedule(show){const f=document.getElementById('dbmScheduleFields');if(f)f.style.display=show?'grid':'none'}
 async function applySchedule(id){await load();const x=schedules[id]||{};const d=document.getElementById('dbmWorkDate'),t=document.getElementById('dbmWorkTime');if(d)d.value=x.date||'';if(t)t.value=x.time||''}
 const total=j=>(j.lines||[]).reduce((s,l)=>s+M.n(l.qty)*M.n(l.sell),0);
+const received=e=>{if(typeof M.receivedAmount==='function')return M.n(M.receivedAmount(e));if(Array.isArray(e?.payments)&&e.payments.length)return Math.min(M.n(e.amount),e.payments.reduce((s,p)=>s+M.n(p.amount),0));if(e?.paidAmount!=null&&e.paidAmount!=='')return Math.min(M.n(e.amount),M.n(e.paidAmount));return e?.paid==='paid'?M.n(e.amount):0};
+const outstanding=e=>Math.max(0,M.n(e?.amount)-received(e));
 const shortDate=s=>{if(!s)return '—';const [y,m,d]=s.split('-');return `${d}/${m}`};
 const isoLocal=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`};
 const endOfWeek=()=>{const d=new Date(),day=d.getDay()||7;d.setDate(d.getDate()+(7-day));return isoLocal(d)};
@@ -31,8 +33,8 @@ function row(j,clients,label=''){const s=schedules[j.id]||{},cl=clients[j.client
 async function renderAgenda(){
  const stats=document.getElementById('dbmAgendaStats'),list=document.getElementById('dbmAgendaList');if(!stats||!list)return;await load();
  const jobs=await M.mAll('jobs'),entries=await M.entries(),clients=Object.fromEntries((await M.clients()).map(c=>[c.id,c]));
- const drafts=jobs.filter(j=>j.status==='quote').length,acceptedOpen=jobs.filter(j=>j.status==='quote_accepted'&&!j.convertedJobId).length,unscheduledJobs=jobs.filter(j=>j.status==='scheduled'&&!schedules[j.id]?.date).length,unpaid=entries.filter(e=>e.type==='income'&&e.paid==='unpaid');
- const unpaidTotal=unpaid.reduce((s,e)=>s+M.n(e.amount),0);const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);const cut=isoLocal(cutoff),overdue=unpaid.filter(e=>e.date&&e.date<cut).reduce((s,e)=>s+M.n(e.amount),0);
+ const drafts=jobs.filter(j=>j.status==='quote').length,acceptedOpen=jobs.filter(j=>j.status==='quote_accepted'&&!j.convertedJobId).length,unscheduledJobs=jobs.filter(j=>j.status==='scheduled'&&!schedules[j.id]?.date).length,unpaid=entries.filter(e=>e.type==='income'&&outstanding(e)>0.005);
+ const unpaidTotal=unpaid.reduce((s,e)=>s+outstanding(e),0);const cutoff=new Date();cutoff.setDate(cutoff.getDate()-7);const cut=isoLocal(cutoff),overdue=unpaid.filter(e=>e.date&&e.date<cut).reduce((s,e)=>s+outstanding(e),0);
  const today=isoLocal(new Date()),weekEnd=endOfWeek();const weekJobs=jobs.filter(j=>!String(j.status||'').startsWith('quote')&&j.status!=='completed'&&schedules[j.id]?.date>=today&&schedules[j.id]?.date<=weekEnd);
  stats.innerHTML=`<div class="dbm-agenda-stat"><span>PREVENTIVI DA INVIARE</span><b>${drafts}</b></div><div class="dbm-agenda-stat"><span>DA PROGRAMMARE</span><b>${acceptedOpen+unscheduledJobs}</b></div><div class="dbm-agenda-stat"><span>LAVORI QUESTA SETTIMANA</span><b>${weekJobs.length}</b></div><div class="dbm-agenda-stat"><span>DA INCASSARE</span><b>${M.money(unpaidTotal)}</b>${overdue?`<span>oltre 7 gg: ${M.money(overdue)}</span>`:''}</div>`;
  const scheduled=jobs.filter(j=>!String(j.status||'').startsWith('quote')&&j.status!=='completed'&&schedules[j.id]?.date).sort((a,b)=>{const A=schedules[a.id],B=schedules[b.id];return `${A.date}T${A.time||'99:99'}`.localeCompare(`${B.date}T${B.time||'99:99'}`)});
