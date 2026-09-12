@@ -1,3 +1,3 @@
 # DB Plumbing Services Ledger
 
-Internal business manager for DB Plumbing Services.
+Private-first business ledger and manager for DB Plumbing Services.
