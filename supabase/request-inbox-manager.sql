@@ -73,8 +73,8 @@ revoke all on function public.manager_request_ack(text, text[]) from public;
 grant execute on function public.manager_request_inbox(text) to anon, authenticated;
 grant execute on function public.manager_request_ack(text, text[]) to anon, authenticated;
 
--- Direct table reads remain blocked; the Manager can read only through the token-gated RPC.
-revoke select, update, delete on table public.service_requests from anon, authenticated;
+-- Existing service_requests RLS/grants are left untouched so the public website submission flow cannot regress.
+-- The Manager reads through the token-gated RPC above; service_request_imports itself stays inaccessible to anon/authenticated roles.
 
 -- Test records are kept temporarily for the end-to-end CRM import verification.
 -- They will be removed only after that verification passes.
