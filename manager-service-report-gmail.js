@@ -10,8 +10,8 @@ function body(r){return `Hi ${r.clientName||''},\n\nPlease find below the servic
 function gmailUrl(r){const to=String(r.email||'').trim();if(!to)return'';const subject=`DB Plumbing Services - Service Report ${r.number}`;return `https://mail.google.com/mail/?authuser=${encodeURIComponent(DB_GMAIL)}&view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body(r))}`}
 async function openGmail(id,w){const r=await findReport(id);if(!r){try{w?.close()}catch{};alert('Rapporto non trovato.');return}if(!String(r.email||'').trim()){try{w?.close()}catch{};alert('Questo cliente non ha un indirizzo email registrato.');return}const url=gmailUrl(r);if(w)w.location.href=url;else window.location.href=url}
 function launch(id){if(!id){alert('Salva prima il rapporto.');return}const w=window.open('about:blank','_blank');openGmail(id,w)}
-function bindEditor(){const b=document.getElementById('dbmSrEmail');if(!b)return;b.textContent='Gmail';b.onclick=()=>launch(document.getElementById('dbmSrId')?.value||'')}
-function bindList(){document.querySelectorAll('#dbmServiceReportList [data-sr-mail]').forEach(b=>{b.textContent='Gmail';b.onclick=()=>launch(b.dataset.srMail||'')})}
-function init(){if(M.__serviceReportGmailReady)return;M.__serviceReportGmailReady=true;bindEditor();bindList();const list=document.getElementById('dbmServiceReportList');if(list)new MutationObserver(bindList).observe(list,{childList:true,subtree:true})}
+function bindEditor(){const b=document.getElementById('dbmSrEmail');if(!b||b.dataset.gmailBound==='1')return;b.dataset.gmailBound='1';b.textContent='Gmail';b.onclick=()=>launch(document.getElementById('dbmSrId')?.value||'')}
+function bindList(){document.querySelectorAll('#dbmServiceReportList [data-sr-mail]').forEach(b=>{if(b.dataset.gmailBound==='1')return;b.dataset.gmailBound='1';b.textContent='Gmail';b.onclick=()=>launch(b.dataset.srMail||'')})}
+function init(){if(M.__serviceReportGmailReadyV75)return;M.__serviceReportGmailReadyV75=true;bindEditor();bindList();const list=document.getElementById('dbmServiceReportList');if(list)new MutationObserver(()=>bindList()).observe(list,{childList:true})}
 wait();
 })();
