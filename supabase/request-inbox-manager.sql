@@ -19,7 +19,7 @@ security definer
 set search_path = public, extensions
 as $$
 declare
-  expected_hash constant text := 'd1497030dfde08f58db451ce314dbc621ce62ba72ee5804974f3c12af91b958a';
+  expected_hash constant text := 'c711a8f559024383f27c83585edad7328ce1af05870c5126d7e96e23804e5f08';
 begin
   if p_token is null
      or encode(extensions.digest(p_token, 'sha256'), 'hex') <> expected_hash then
@@ -45,7 +45,7 @@ security definer
 set search_path = public, extensions
 as $$
 declare
-  expected_hash constant text := 'd1497030dfde08f58db451ce314dbc621ce62ba72ee5804974f3c12af91b958a';
+  expected_hash constant text := 'c711a8f559024383f27c83585edad7328ce1af05870c5126d7e96e23804e5f08';
   affected integer := 0;
 begin
   if p_token is null
