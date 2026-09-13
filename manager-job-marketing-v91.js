@@ -2,33 +2,31 @@
 'use strict';
 
 const PACK_KEY='jobMarketingPacksV1';
-let M,baseOpenJob,currentJobId='',urls=[];
+let M,currentJobId='',urls=[];
 const $=id=>document.getElementById(id);
+const cleanSpaces=s=>String(s||'').replace(/\s+/g,' ').trim();
 
 const wait=()=>{
   M=window.DBM;
-  if(!M?.openJob||!M?.mOne||!M?.setting||!M?.lPut||!M?.clients||!$('dbmJobForm')||!$('dbmJobDialog')) return setTimeout(wait,100);
+  if(!M?.mOne||!M?.lOne||!M?.setting||!M?.lPut||!M?.clients||!$('dbmJobForm')||!$('dbmJobDialog')) return setTimeout(wait,100);
   init();
 };
 
-const cleanSpaces=s=>String(s||'').replace(/\s+/g,' ').trim();
-
 function init(){
-  if(M.__jobMarketingV98Ready)return;
-  M.__jobMarketingV98Ready=true;
+  if(M.__jobMarketingV99Ready)return;
+  M.__jobMarketingV99Ready=true;
   styles();
   inject();
   dialogs();
   bind();
-  wrapOpenJob();
   M.openJobMarketing=openMarketing;
-  refreshLauncher().catch(console.error);
+  syncFromJobDialog().catch(console.error);
 }
 
 function styles(){
-  if($('dbmJobMarketingStylesV98'))return;
+  if($('dbmJobMarketingStylesV99'))return;
   const s=document.createElement('style');
-  s.id='dbmJobMarketingStylesV98';
+  s.id='dbmJobMarketingStylesV99';
   s.textContent=`
 #dbmJobMarketingBox{margin-top:12px;padding:12px;border:1px solid #dce6ee;border-radius:14px;background:#f8fbfd}
 .dbm-jm-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
@@ -74,16 +72,8 @@ function dialogs(){
     <div class="dialog-head"><h2>Job → Marketing</h2><button type="button" class="icon" data-close-job-marketing>×</button></div>
     <div class="dbm-jm-privacy"><b>Privacy automatica.</b> Il contenuto generato non usa nome cliente, telefono, email, importi o indirizzo/località del lavoro. Prima della pubblicazione resta comunque sotto il tuo controllo.</div>
     <div id="dbmJobMarketingPhotos" class="dbm-jm-photo-grid"></div>
-    <div class="dbm-jm-lang">
-      <div class="dbm-jm-lang-head"><b>English</b><span class="hint">Social / portfolio</span></div>
-      <textarea id="dbmJobMarketingEN" rows="7"></textarea>
-      <div class="dbm-jm-actions"><button type="button" class="secondary" data-copy-marketing="en">Copia testo EN</button><button type="button" class="primary" data-share-marketing="en">Condividi EN + foto</button></div>
-    </div>
-    <div class="dbm-jm-lang">
-      <div class="dbm-jm-lang-head"><b>Italiano</b><span class="hint">Social / portfolio</span></div>
-      <textarea id="dbmJobMarketingIT" rows="7"></textarea>
-      <div class="dbm-jm-actions"><button type="button" class="secondary" data-copy-marketing="it">Copia testo IT</button><button type="button" class="primary" data-share-marketing="it">Condividi IT + foto</button></div>
-    </div>
+    <div class="dbm-jm-lang"><div class="dbm-jm-lang-head"><b>English</b><span class="hint">Social / portfolio</span></div><textarea id="dbmJobMarketingEN" rows="7"></textarea><div class="dbm-jm-actions"><button type="button" class="secondary" data-copy-marketing="en">Copia testo EN</button><button type="button" class="primary" data-share-marketing="en">Condividi EN + foto</button></div></div>
+    <div class="dbm-jm-lang"><div class="dbm-jm-lang-head"><b>Italiano</b><span class="hint">Social / portfolio</span></div><textarea id="dbmJobMarketingIT" rows="7"></textarea><div class="dbm-jm-actions"><button type="button" class="secondary" data-copy-marketing="it">Copia testo IT</button><button type="button" class="primary" data-share-marketing="it">Condividi IT + foto</button></div></div>
     <div id="dbmJobMarketingHint" class="dbm-jm-note"></div>
   </form>
 </dialog>`);
@@ -99,26 +89,23 @@ function bind(){
     if(s){await sharePack(s.dataset.shareMarketing);return}
   });
   $('dbmJobMarketingDialog').addEventListener('close',()=>{void persistEdited();clearUrls()});
+
+  const jobDialog=$('dbmJobDialog');
+  new MutationObserver(()=>{
+    if(jobDialog.open) requestAnimationFrame(()=>syncFromJobDialog().catch(console.error));
+  }).observe(jobDialog,{attributes:true,attributeFilter:['open']});
 }
 
-function wrapOpenJob(){
-  baseOpenJob=M.openJob.bind(M);
-  M.openJob=async id=>{
-    const r=await baseOpenJob(id);
-    currentJobId=$('dbmJobId')?.value||id||'';
-    await refreshLauncher();
-    return r;
-  };
-}
-
-async function refreshLauncher(){
+async function syncFromJobDialog(){
   const btn=$('dbmJobMarketingOpen'),state=$('dbmJobMarketingState');
   if(!btn||!state)return;
-  const id=String($('dbmJobId')?.value||currentJobId||'').trim();
-  btn.disabled=!id;
-  if(!id){state.textContent='Salva prima il lavoro.';return}
+  const id=String($('dbmJobId')?.value||'').trim();
+  currentJobId=id;
+  btn.disabled=true;
+  if(!id){state.textContent=$('dbmJobDialog')?.open?'Salva prima il lavoro.':'Apri un lavoro salvato.';return}
   const job=await M.mOne('jobs',id);
-  if(!job){btn.disabled=true;state.textContent='Lavoro non trovato.';return}
+  if(!job){state.textContent='Lavoro non trovato.';return}
+  btn.disabled=false;
   const d=job.dossier||{};
   const count=[d.beforeFileId,d.afterFileId].filter(Boolean).length;
   state.textContent=count?`Pronto · ${count} foto reale${count===1?'':'i'} dal dossier.`:'Pronto per il testo. Per condividere immagini aggiungi Foto prima/dopo nel Dossier lavoro.';
@@ -136,17 +123,8 @@ async function savePack(jobId,data){
 
 function redact(s,values=[]){
   let out=String(s||'');
-  for(const v of values){
-    const x=cleanSpaces(v);
-    if(!x)continue;
-    out=out.replace(new RegExp(escapeRegExp(x),'gi'),' ');
-  }
-  return out
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,' ')
-    .replace(/(?:\+?\d[\d\s().-]{6,}\d)/g,' ')
-    .replace(/\s+([,.;:])/g,'$1')
-    .replace(/\s{2,}/g,' ')
-    .trim();
+  for(const v of values){const x=cleanSpaces(v);if(x)out=out.replace(new RegExp(escapeRegExp(x),'gi'),' ')}
+  return out.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,' ').replace(/(?:\+?\d[\d\s().-]{6,}\d)/g,' ').replace(/\s+([,.;:])/g,'$1').replace(/\s{2,}/g,' ').trim();
 }
 function escapeRegExp(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
 function cleanService(s,redactions){return redact(s,redactions).replace(/\s*[-–—]\s*$/,'').replace(/^[,;:\s-]+|[,;:\s-]+$/g,'').trim()}
@@ -175,11 +153,9 @@ function clearUrls(){urls.forEach(u=>URL.revokeObjectURL(u));urls=[]}
 
 async function renderPhotos(job){
   clearUrls();
-  const box=$('dbmJobMarketingPhotos');
-  const d=job?.dossier||{};
+  const box=$('dbmJobMarketingPhotos'),d=job?.dossier||{};
   const before=await dossierFile(d.beforeFileId),after=await dossierFile(d.afterFileId);
-  const items=[['Prima',before],['Dopo',after]];
-  box.innerHTML='';
+  const items=[['Prima',before],['Dopo',after]];box.innerHTML='';
   for(const [label,rec] of items){
     const card=document.createElement('div');card.className='dbm-jm-photo';
     const b=document.createElement('b');b.textContent=label;card.appendChild(b);
@@ -194,8 +170,7 @@ async function openMarketing(jobId){
   const id=String(jobId||$('dbmJobId')?.value||'').trim();
   const job=id?await M.mOne('jobs',id):null;
   if(!job){alert('Lavoro non trovato.');return}
-  const texts=await generateTexts(job);
-  const packs=await loadPacks(),saved=packs[job.id]||{};
+  const texts=await generateTexts(job),packs=await loadPacks(),saved=packs[job.id]||{};
   $('dbmJobMarketingEN').value=saved.en||texts.en;
   $('dbmJobMarketingIT').value=saved.it||texts.it;
   const photos=await renderPhotos(job);
@@ -205,13 +180,9 @@ async function openMarketing(jobId){
   $('dbmJobMarketingDialog').showModal();
 }
 
-async function persistEdited(){
-  if(!currentJobId)return;
-  await savePack(currentJobId,{en:$('dbmJobMarketingEN').value.trim(),it:$('dbmJobMarketingIT').value.trim()});
-}
+async function persistEdited(){if(currentJobId)await savePack(currentJobId,{en:$('dbmJobMarketingEN').value.trim(),it:$('dbmJobMarketingIT').value.trim()})}
 async function copyText(lang){
-  const el=lang==='it'?$('dbmJobMarketingIT'):$('dbmJobMarketingEN');
-  const text=el?.value.trim()||'';if(!text)return;await persistEdited();
+  const el=lang==='it'?$('dbmJobMarketingIT'):$('dbmJobMarketingEN'),text=el?.value.trim()||'';if(!text)return;await persistEdited();
   try{await navigator.clipboard.writeText(text);toast(`Testo ${lang.toUpperCase()} copiato.`)}catch{prompt('Copia il testo:',text)}
 }
 function toFile(rec,index){
