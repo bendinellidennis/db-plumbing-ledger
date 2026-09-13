@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-let M,baseRenderJobs;
+let M,baseRenderJobs,decorateQueued=false;
 const $=id=>document.getElementById(id);
 
 const wait=()=>{
@@ -10,15 +10,16 @@ const wait=()=>{
 };
 
 function init(){
-  if(M.__jobMarketingListV102Ready)return;
-  M.__jobMarketingListV102Ready=true;
+  if(M.__jobMarketingListV104Ready)return;
+  M.__jobMarketingListV104Ready=true;
   styles();
   removeLegacy();
   watchLegacy();
+  watchList();
   baseRenderJobs=M.renderJobs.bind(M);
   M.renderJobs=async(...args)=>{
     const r=await baseRenderJobs(...args);
-    decorate();
+    scheduleDecorate();
     removeLegacy();
     return r;
   };
@@ -34,13 +35,13 @@ function init(){
     catch(err){console.error('Job Marketing list',err);alert('Impossibile aprire il contenuto marketing.')}
     finally{btn.disabled=false}
   });
-  decorate();
+  scheduleDecorate();
 }
 
 function styles(){
-  if($('dbmJobMarketingListV102Styles'))return;
+  if($('dbmJobMarketingListV104Styles'))return;
   const s=document.createElement('style');
-  s.id='dbmJobMarketingListV102Styles';
+  s.id='dbmJobMarketingListV104Styles';
   s.textContent=`
 #dbmJobMarketingBox{display:none!important}
 .dbm-job-marketing-list{display:flex;justify-content:flex-end;margin:-4px 4px 12px}
@@ -55,23 +56,47 @@ function removeLegacy(){
 }
 
 function watchLegacy(){
-  if(M.__jobMarketingLegacyObserverV102)return;
+  if(M.__jobMarketingLegacyObserverV104)return;
   const dialog=$('dbmJobDialog');
   if(!dialog)return;
-  M.__jobMarketingLegacyObserverV102=new MutationObserver(()=>removeLegacy());
-  M.__jobMarketingLegacyObserverV102.observe(dialog,{childList:true,subtree:true});
+  M.__jobMarketingLegacyObserverV104=new MutationObserver(()=>removeLegacy());
+  M.__jobMarketingLegacyObserverV104.observe(dialog,{childList:true,subtree:true});
+}
+
+function watchList(){
+  if(M.__jobMarketingListObserverV104)return;
+  const list=$('dbmJobList');
+  if(!list)return;
+  M.__jobMarketingListObserverV104=new MutationObserver(()=>scheduleDecorate());
+  M.__jobMarketingListObserverV104.observe(list,{childList:true});
+}
+
+function scheduleDecorate(){
+  if(decorateQueued)return;
+  decorateQueued=true;
+  requestAnimationFrame(()=>{
+    decorateQueued=false;
+    decorate();
+  });
 }
 
 function decorate(){
   const list=$('dbmJobList');
   if(!list)return;
-  list.querySelectorAll('.dbm-job-marketing-list').forEach(x=>x.remove());
-  list.querySelectorAll('.dbm-job[data-job]').forEach(row=>{
+
+  const wanted=new Set();
+  list.querySelectorAll('.dbm-job[data-work], .dbm-job[data-job]').forEach(row=>{
     if(!row.querySelector('.dbm-status.completed'))return;
-    const id=String(row.dataset.job||'').trim();
+    const id=String(row.dataset.work||row.dataset.job||'').trim();
     if(!id)return;
+    wanted.add(id);
+
+    const next=row.nextElementSibling;
+    if(next?.classList.contains('dbm-job-marketing-list') && next.dataset.forWork===id)return;
+
     const wrap=document.createElement('div');
     wrap.className='dbm-job-marketing-list';
+    wrap.dataset.forWork=id;
     const btn=document.createElement('button');
     btn.type='button';
     btn.className='secondary small';
@@ -79,6 +104,10 @@ function decorate(){
     btn.textContent='Crea contenuto marketing';
     wrap.appendChild(btn);
     row.insertAdjacentElement('afterend',wrap);
+  });
+
+  list.querySelectorAll('.dbm-job-marketing-list').forEach(wrap=>{
+    if(!wanted.has(String(wrap.dataset.forWork||'')))wrap.remove();
   });
 }
 
