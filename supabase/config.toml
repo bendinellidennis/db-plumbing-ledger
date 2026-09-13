@@ -1,0 +1,4 @@
+project_id = "db-plumbing-ledger"
+
+[functions.agenda-push]
+verify_jwt = false
