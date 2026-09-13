@@ -179,7 +179,7 @@ async function share(q){
 function decisionStatus(d){
   if(d==='accepted')return'quote_accepted';
   if(d==='rejected')return'quote_rejected';
-  if(d==='change_requested')return'quote_change_requested';
+  if(d==='change_requested')return'quote_sent';
   return'';
 }
 function decisionLabel(d){
@@ -239,6 +239,12 @@ async function backgroundSync(){
   }
 }
 
+function responseTime(v){
+  if(!v)return'';
+  try{return new Intl.DateTimeFormat('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(v))}
+  catch{return''}
+}
+
 async function decorate(){
   const el=document.getElementById('dbmQuoteList');
   if(!el)return;
@@ -248,7 +254,7 @@ async function decorate(){
     const q=quotes[row.dataset.quote];
     if(!q)return;
     const status=row.querySelector('.dbm-status');
-    if(q.status==='quote_change_requested'&&status){
+    if(q.interactiveDecision==='change_requested'&&status){
       status.textContent='Modifica richiesta';
       status.classList.add('quote_change_requested');
     }
@@ -266,7 +272,7 @@ async function decorate(){
         <button type="button" class="secondary small" data-iq-share>Condividi link</button>
         <button type="button" class="secondary small" data-iq-update>${updateLabel}</button>
         <span class="dbm-iq-live">Interactive Quote</span>
-        <div class="dbm-iq-note">${decision?`<strong>${escapeHtml(decisionLabel(decision))}</strong>${q.interactiveMessage?' · '+escapeHtml(q.interactiveMessage):''}`:'In attesa della risposta del cliente.'}</div>
+        <div class="dbm-iq-note">${decision?`<strong>${escapeHtml(decisionLabel(decision))}</strong>${q.interactiveRespondedAt?' · '+escapeHtml(responseTime(q.interactiveRespondedAt)):''}${q.interactiveMessage?' · '+escapeHtml(q.interactiveMessage):''}`:'In attesa della risposta del cliente.'}</div>
       `;
     }
     actions.appendChild(box);
@@ -285,11 +291,11 @@ async function onQuoteAction(e){
 
   b.disabled=true;
   try{
-    if(b.hasAttribute('data-iq-create')) await publish(q,{shareAfter:true});
+    if(b.hasAttribute('data-iq-create')) await publish(q,{shareAfter:false});
     else if(b.hasAttribute('data-iq-share')) await share(q);
     else if(b.hasAttribute('data-iq-update')){
       const reset=q.interactiveDecision==='change_requested'||q.interactiveDecision==='rejected';
-      await publish(q,{resetResponse:reset,shareAfter:reset});
+      await publish(q,{resetResponse:reset,shareAfter:false});
     }
   }catch(err){
     console.error('Interactive Quote',err);
