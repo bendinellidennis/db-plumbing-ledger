@@ -8,7 +8,7 @@ const boot=async()=>{
   if(!y||!y.options.length){if(tries++<200)return setTimeout(boot,50);return console.error('DB Manager: ledger not ready')}
   try{
     await load('manager-core.js?v=85');
-    await load('manager-loader.js?v=97');
+    await load('manager-loader.js?v=98');
     for(let i=0;i<200&&!window.__DBM_MAIN_LOADER_READY__;i++){
       if(window.__DBM_MAIN_LOADER_PROMISE__){await window.__DBM_MAIN_LOADER_PROMISE__;break}
       await sleep(50);
