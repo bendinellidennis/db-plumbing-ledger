@@ -1,40 +1,11 @@
 (()=>{
 'use strict';
-if(window.__DBMQuoteIOSBridgeV119)return;
-window.__DBMQuoteIOSBridgeV119=true;
-let openTimer=null,shareTimer=null;
-
-function fakePopup(){
-  const proxy={document:{write(){},open(){},close(){}},close(){},focus(){}};
-  const loc={};
-  Object.defineProperty(loc,'href',{
-    configurable:true,
-    get(){return window.location.href},
-    set(v){if(v)window.location.assign(v)}
-  });
-  proxy.location=loc;
-  return proxy;
-}
-
-function patchWindowOpen(){
-  const current=window.open;
-  if(typeof current!=='function'||current.__dbmQuoteIOSV119)return;
-  const original=current;
-  const patched=function(url,target,features){
-    const u=String(url||'');
-    if((target==='_blank'||!target)&&(u===''||u==='about:blank'||u.startsWith('about:blank#'))){
-      return fakePopup();
-    }
-    return original.call(window,url,target,features);
-  };
-  patched.__dbmQuoteIOSV119=true;
-  try{window.open=patched}catch{return}
-  clearTimeout(openTimer);
-  openTimer=setTimeout(()=>{try{if(window.open===patched)window.open=original}catch{}},120000);
-}
+if(window.__DBMQuoteIOSBridgeV120)return;
+window.__DBMQuoteIOSBridgeV120=true;
+let shareTimer=null;
 
 function patchNativeShare(){
-  if(typeof navigator.share!=='function'||navigator.share.__dbmQuoteIOSV119)return;
+  if(typeof navigator.share!=='function'||navigator.share.__dbmQuoteIOSV120)return;
   const hadOwn=Object.prototype.hasOwnProperty.call(navigator,'share');
   const ownDesc=Object.getOwnPropertyDescriptor(navigator,'share');
   const current=navigator.share;
@@ -42,17 +13,13 @@ function patchNativeShare(){
   const wrapped=function(data){
     const files=Array.isArray(data?.files)?data.files.filter(Boolean):[];
     if(files.length){
-      // WhatsApp / WhatsApp Business on iOS can accept the Web Share handoff
-      // but then fail to send the temporary browser attachment. Deliberately
-      // reject here so the quotation module uses its download/save fallback,
-      // producing a real PDF file that can be attached as a Document.
       const err=new Error('DBM_PDF_SAVE_REQUIRED');
       err.name='NotSupportedError';
       return Promise.reject(err);
     }
     return original(data);
   };
-  wrapped.__dbmQuoteIOSV119=true;
+  wrapped.__dbmQuoteIOSV120=true;
   let installed=false;
   try{
     Object.defineProperty(navigator,'share',{configurable:true,writable:true,value:wrapped});
@@ -69,30 +36,42 @@ function patchNativeShare(){
       if(hadOwn&&ownDesc)Object.defineProperty(navigator,'share',ownDesc);
       else delete navigator.share;
     }catch{try{navigator.share=current}catch{}}
-  },120000);
+  },30000);
 }
 
-function relabel(){
-  document.querySelectorAll('[data-qpdf-share]').forEach(b=>{
-    b.textContent='Salva PDF';
-    b.setAttribute('aria-label','Salva il preventivo come PDF');
+function relabel(root=document){
+  root.querySelectorAll?.('[data-qpdf-share]').forEach(b=>{
+    if(b.textContent!=='Salva PDF')b.textContent='Salva PDF';
+    if(b.getAttribute('aria-label')!=='Salva il preventivo come PDF')b.setAttribute('aria-label','Salva il preventivo come PDF');
   });
-  document.querySelectorAll('.dbm-qpdf-note').forEach(n=>{
+  root.querySelectorAll?.('.dbm-qpdf-note').forEach(n=>{
+    const text='Invio PDF: salva il file e allegalo in WhatsApp o WhatsApp Business come Documento. Nessun link viene inviato al cliente.';
+    if(n.dataset.dbmPdfNote==='1')return;
     n.innerHTML='<strong>Invio PDF:</strong> salva il file e allegalo in WhatsApp o WhatsApp Business come Documento. Nessun link viene inviato al cliente.';
+    n.dataset.dbmPdfNote='1';
   });
 }
 
-const observer=new MutationObserver(relabel);
-if(document.documentElement)observer.observe(document.documentElement,{childList:true,subtree:true});
-relabel();
+function installRelabelObserver(){
+  const list=document.getElementById('dbmQuoteList');
+  if(!list||list.dataset.dbmPdfObserver==='1')return;
+  list.dataset.dbmPdfObserver='1';
+  relabel(list);
+  new MutationObserver(mutations=>{
+    for(const m of mutations){
+      for(const node of m.addedNodes){
+        if(node.nodeType===1)relabel(node);
+      }
+    }
+  }).observe(list,{childList:true,subtree:true});
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installRelabelObserver,{once:true});
+else installRelabelObserver();
 
 document.addEventListener('click',e=>{
   const t=e.target;
   if(!t?.closest)return;
-  if(t.closest('[data-qpdf-open]'))patchWindowOpen();
-  if(t.closest('[data-qpdf-share]')){
-    relabel();
-    patchNativeShare();
-  }
+  if(t.closest('[data-qpdf-share]'))patchNativeShare();
 },true);
 })();
