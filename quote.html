@@ -4,36 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow,noarchive">
-  <meta name="theme-color" content="#0f2638">
+  <meta name="theme-color" content="#ffffff">
   <title>DB Plumbing Services · Quotation</title>
   <style>
-    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#102a43;background:#eef3f6}
-    *{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#0f2638 0,#163b55 180px,#eef3f6 180px);min-height:100vh}
-    .wrap{max-width:760px;margin:0 auto;padding:22px 14px 42px}.brand{color:#fff;padding:4px 4px 18px}.brand h1{font-size:24px;margin:0;font-weight:900;letter-spacing:-.02em}.brand p{margin:5px 0 0;opacity:.78;font-size:12px}
-    .card{background:#fff;border-radius:22px;box-shadow:0 18px 42px rgba(15,38,56,.16);padding:20px}.loading{text-align:center;padding:42px 10px;color:#64748b}
-    .head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;border-bottom:1px solid #e8eef2;padding-bottom:16px}.head h2{margin:0;font-size:22px}.meta{color:#64748b;font-size:12px;line-height:1.6;margin-top:6px}.total{text-align:right;white-space:nowrap}.total span{display:block;color:#64748b;font-size:10px;text-transform:uppercase;font-weight:800}.total b{display:block;font-size:25px;margin-top:3px}
-    .client{margin:16px 0;padding:12px 14px;background:#f7fafc;border-radius:14px;font-size:13px}.client b{display:block;margin-bottom:3px}
-    .lines{margin-top:10px}.line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:13px 0;border-bottom:1px solid #edf1f4}.line:last-child{border-bottom:0}.desc{font-weight:750;line-height:1.35}.qty{display:block;color:#64748b;font-size:11px;margin-top:3px}.price{font-weight:850;white-space:nowrap}
-    .summary{display:flex;justify-content:space-between;align-items:center;border-top:2px solid #102a43;margin-top:10px;padding-top:14px;font-size:17px}.summary b{font-size:22px}
-    .decision{margin-top:22px;padding-top:18px;border-top:1px solid #e8eef2}.decision h3{margin:0 0 4px;font-size:17px}.decision p{margin:0 0 14px;color:#64748b;font-size:12px;line-height:1.5}
-    .buttons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.buttons button,.submit-change{min-height:48px;border:0;border-radius:13px;font-size:13px;font-weight:850;padding:10px;cursor:pointer}.accept{background:#13795b;color:#fff}.change{background:#fff4dc;color:#8a5a00;border:1px solid #ecd69d!important}.reject{background:#f3f5f7;color:#475569}.buttons button:disabled,.submit-change:disabled{opacity:.55}
-    .change-box{display:none;margin-top:12px}.change-box.open{display:block}.change-box textarea{width:100%;min-height:110px;border:1px solid #d8e2e8;border-radius:13px;padding:12px;font:inherit;font-size:16px;resize:vertical}.submit-change{width:100%;margin-top:8px;background:#8a5a00;color:#fff}
-    .result{display:none;margin-top:18px;border-radius:14px;padding:14px;font-size:13px;line-height:1.5}.result.show{display:block}.result.accepted{background:#e9f7ef;color:#116149}.result.change_requested{background:#fff7e6;color:#805300}.result.rejected{background:#f4f5f7;color:#475569}
-    .contact{margin-top:18px;text-align:center;color:#64748b;font-size:11px;line-height:1.6}.contact a{color:#0b6d9c;text-decoration:none;font-weight:750}
-    .error{text-align:center;padding:30px 10px}.error h2{margin:0 0 8px}.error p{color:#64748b;line-height:1.5}
-    @media(max-width:560px){.wrap{padding:14px 10px 32px}.card{padding:17px;border-radius:18px}.head{display:block}.total{text-align:left;margin-top:12px}.buttons{grid-template-columns:1fr}.buttons button{min-height:52px}}
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#102a43;background:#f4f7f9}*{box-sizing:border-box}body{margin:0;background:#f4f7f9;min-height:100vh}.wrap{max-width:760px;margin:0 auto;padding:20px 14px 42px}.brand{display:flex;align-items:center;gap:14px;background:#fff;border-radius:18px;padding:15px 17px;margin-bottom:12px;border:1px solid #dce6ee}.brand img{width:74px;height:48px;object-fit:contain}.brand h1{font-size:22px;margin:0;font-weight:900;letter-spacing:-.02em}.brand p{margin:4px 0 0;color:#64748b;font-size:11px;line-height:1.4}.brand .contact-mini{margin-left:auto;text-align:right;color:#475569;font-size:10px;line-height:1.55}.card{background:#fff;border-radius:20px;border:1px solid #dce6ee;box-shadow:0 14px 34px rgba(15,38,56,.08);padding:22px}.loading{text-align:center;padding:42px 10px;color:#64748b}.doc-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;border-top:5px solid #102a43;border-bottom:1px solid #e6edf2;padding:18px 0}.doc-title span{display:block;color:#0b6d9c;font-size:10px;letter-spacing:.12em;font-weight:900}.doc-title h2{margin:5px 0 0;font-size:22px;line-height:1.25}.doc-total{text-align:right;white-space:nowrap}.doc-total small{display:block;color:#64748b;font-size:10px;text-transform:uppercase;font-weight:800}.doc-total strong{display:block;font-size:25px;margin-top:4px}.doc-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}.doc-meta div{background:#f7fafc;border-radius:12px;padding:11px 12px}.doc-meta small{display:block;color:#0b6d9c;text-transform:uppercase;font-size:9px;font-weight:850;letter-spacing:.04em}.doc-meta b{display:block;margin-top:4px;font-size:12px;line-height:1.35}.lines{margin-top:8px}.line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;padding:14px 0;border-bottom:1px solid #edf1f4}.line:last-child{border-bottom:0}.desc{font-weight:750;line-height:1.45}.qty{display:block;color:#64748b;font-size:11px;margin-top:4px}.price{font-weight:850;white-space:nowrap}.summary{display:flex;justify-content:space-between;align-items:center;border-top:2px solid #102a43;margin-top:12px;padding-top:15px;font-size:16px}.summary b{font-size:22px}.static-note{margin-top:20px;padding:13px 14px;background:#f7fafc;border-left:3px solid #0b87c9;border-radius:8px;color:#475569;font-size:11px;line-height:1.55}.contact{margin-top:18px;text-align:center;color:#64748b;font-size:11px;line-height:1.6}.contact strong{color:#102a43}.contact a{color:#0b6d9c;text-decoration:none;font-weight:750}.error{text-align:center;padding:30px 10px}.error h2{margin:0 0 8px}.error p{color:#64748b;line-height:1.5}@media(max-width:560px){.wrap{padding:12px 10px 30px}.brand{align-items:flex-start}.brand .contact-mini{display:none}.card{padding:17px;border-radius:16px}.doc-head{display:block}.doc-total{text-align:left;margin-top:12px}.doc-meta{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <main class="wrap">
     <header class="brand">
-      <h1>DB Plumbing Services</h1>
-      <p>Professional plumbing & property maintenance · Malta</p>
+      <img src="db-brand-mark.svg" alt="DB Plumbing Services">
+      <div><h1>DB Plumbing Services</h1><p>Professional Plumbing & Property Maintenance · Malta</p></div>
+      <div class="contact-mini">+356 7753 2068<br>dbplumbingservicesmalta@gmail.com</div>
     </header>
-    <section id="quoteCard" class="card">
-      <div class="loading">Loading quotation…</div>
-    </section>
+    <section id="quoteCard" class="card"><div class="loading">Loading quotation…</div></section>
   </main>
-  <script src="quote-client-v84.js?v=84"></script>
+  <script src="quote-client-v84.js?v=117"></script>
 </body>
 </html>

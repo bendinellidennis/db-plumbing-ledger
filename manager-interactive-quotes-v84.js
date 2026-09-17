@@ -1,319 +1,309 @@
 (()=>{
 'use strict';
-const SUPABASE_URL='https://gscrhubeifhlbxxrdlwo.supabase.co';
-const SUPABASE_KEY='sb_publishable_FXBhsGpZ2R73HV1G--uByw_D041l7pz';
-const RPC=`${SUPABASE_URL}/rest/v1/rpc/`;
-let M,baseRenderQuotes,baseOpenQuote,syncing=false;
+let M,list,baseRenderQuotes,decorateQueued=false;
+let pdfLibPromise=null,logoPromise=null;
 
-const wait=()=>{
+const PDF_CDN='https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
+const PHONE='+356 7753 2068';
+const EMAIL='dbplumbingservicesmalta@gmail.com';
+const WEBSITE='bendinellidennis.github.io/bendinelli-dennis/';
+
+function wait(){
   M=window.DBM;
-  if(!M?.renderQuotes||!M?.openQuote||!M?.mAll||!document.getElementById('quotesV2')) return setTimeout(wait,100);
+  list=document.getElementById('dbmQuoteList');
+  if(!M?.mAll||!M?.mOne||!M?.mPut||!M?.clients||!M?.renderQuotes||!list)return setTimeout(wait,100);
   init();
-};
+}
 
 function init(){
   if(M.__interactiveQuotesV84Ready)return;
   M.__interactiveQuotesV84Ready=true;
+  M.__quotePdfV117Ready=true;
   addStyles();
   baseRenderQuotes=M.renderQuotes.bind(M);
-  baseOpenQuote=M.openQuote.bind(M);
-
-  M.openQuote=async id=>{
-    if(id) await syncOneById(id,false);
-    const result=await baseOpenQuote(id);
-    if(id){
-      const q=await M.mOne('jobs',id);
-      if(q?.status==='quote_change_requested'){
-        const s=document.getElementById('dbmJobStatus');
-        if(s&&!s.querySelector('option[value="quote_change_requested"]')){
-          const o=document.createElement('option');
-          o.value='quote_change_requested';
-          o.textContent='Modifica richiesta';
-          s.appendChild(o);
-        }
-        if(s)s.value='quote_change_requested';
-      }
-    }
-    return result;
-  };
-
-  M.renderQuotes=async()=>{
-    await syncAll(false);
-    await baseRenderQuotes();
-    await decorate();
-  };
-
-  const quotes=document.getElementById('quotesV2');
-  quotes.addEventListener('click',onQuoteAction);
-  setInterval(backgroundSync,30000);
-  M.renderQuotes();
+  M.renderQuotes=async()=>{await baseRenderQuotes();await decorate()};
+  list.addEventListener('click',onAction,true);
+  new MutationObserver(scheduleDecorate).observe(list,{childList:true,subtree:true});
+  pdfLibPromise=ensurePdfLib();
+  logoPromise=loadLogoData();
+  decorate();
 }
 
 function addStyles(){
-  if(document.getElementById('dbmInteractiveQuoteV84Style'))return;
+  if(document.getElementById('dbmQuotePdfV117Style'))return;
   const s=document.createElement('style');
-  s.id='dbmInteractiveQuoteV84Style';
+  s.id='dbmQuotePdfV117Style';
   s.textContent=`
-    .dbm-iq-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-    .dbm-iq-note{width:100%;font-size:9.5px;color:#64748b;line-height:1.35;margin-top:1px}
-    .dbm-iq-note strong{color:#0f172a}
-    .dbm-status.quote_change_requested{background:#fff7e6;color:#8a5a00;border-color:#f3ddb0}
-    .dbm-iq-live{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:900;color:#0d7a55}
-    .dbm-iq-live:before{content:'●';font-size:7px}
-    .dbm-iq-toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:99999;background:#102a43;color:white;border-radius:999px;padding:10px 14px;font-size:11px;font-weight:800;box-shadow:0 8px 24px rgba(15,23,42,.22);max-width:calc(100vw - 28px);text-align:center}
+    .dbm-qpdf-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;width:100%}
+    .dbm-qpdf-actions .primary,.dbm-qpdf-actions .secondary{min-height:34px}
+    .dbm-qpdf-note{width:100%;font-size:9.5px;color:#64748b;line-height:1.35;margin-top:1px}
+    .dbm-qpdf-note strong{color:#102a43}
+    .dbm-qpdf-toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:99999;background:#102a43;color:#fff;border-radius:999px;padding:10px 14px;font-size:11px;font-weight:800;box-shadow:0 8px 24px rgba(15,23,42,.22);max-width:calc(100vw - 28px);text-align:center}
   `;
   document.head.appendChild(s);
 }
 
-async function rpc(name,body){
-  const r=await fetch(RPC+name,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
-    body:JSON.stringify(body)
-  });
-  let data=null;
-  try{data=await r.json()}catch{}
-  if(!r.ok) throw new Error(data?.message||data?.error||`HTTP ${r.status}`);
-  return data;
-}
-
-function token(){
-  const b=new Uint8Array(32);
-  crypto.getRandomValues(b);
-  return [...b].map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-
-function quoteLink(q){
-  if(!q?.interactivePublicToken)return'';
-  const u=new URL('quote.html',location.href);
-  u.searchParams.set('t',q.interactivePublicToken);
-  return u.toString();
-}
-
-function quoteTotal(lines=[]){
-  return lines.reduce((s,l)=>s+M.n(l.qty)*M.n(l.sell),0);
-}
-
-async function publicPayload(q){
-  const clients=await M.clients();
-  const c=clients.find(x=>x.id===q.clientId)||{};
-  return {
-    business:{
-      name:await M.setting('tradeName','DB Plumbing Services'),
-      legalName:await M.setting('legalName','Dennis Bendinelli'),
-      phone:'+356 7753 2068',
-      email:'dbplumbingservicesmalta@gmail.com'
-    },
-    client:{name:c.name||'Client'},
-    quote:{
-      key:q.id,
-      title:q.title||'Quotation',
-      date:q.date||M.today(),
-      location:q.location||'',
-      lines:(q.lines||[]).map(l=>({
-        description:String(l.description||''),
-        qty:M.n(l.qty),
-        sell:M.n(l.sell)
-      })).filter(l=>l.description||l.sell),
-      total:quoteTotal(q.lines||[])
-    }
-  };
-}
-
-async function publish(q,{resetResponse=false,shareAfter=false}={}){
-  if(!q)return;
-  if(!q.interactivePublicToken)q.interactivePublicToken=token();
-  if(!q.interactiveOwnerToken)q.interactiveOwnerToken=token();
-
-  const payload=await publicPayload(q);
-  const res=await rpc('interactive_quote_publish',{
-    p_public_token:q.interactivePublicToken,
-    p_owner_token:q.interactiveOwnerToken,
-    p_quote_key:q.id,
-    p_payload:payload,
-    p_reset_response:!!resetResponse
-  });
-
-  q.interactiveVersion=Number(res?.version||q.interactiveVersion||1);
-  q.interactiveDecision=res?.decision||'';
-  q.interactiveMessage=res?.message||'';
-  q.interactiveRespondedAt=res?.respondedAt||'';
-  q.interactivePublishedAt=res?.publishedAt||q.interactivePublishedAt||new Date().toISOString();
-
-  if(resetResponse){
-    q.interactiveDecision='';
-    q.interactiveMessage='';
-    q.interactiveRespondedAt='';
-    q.status='quote_sent';
-  }else if(q.status==='quote'){
-    q.status='quote_sent';
-  }
-  await M.mPut('jobs',q);
-  await baseRenderQuotes();
-  await decorate();
-  toast(resetResponse?'Preventivo aggiornato e pronto da reinviare.':'Link cliente creato. Preventivo segnato come Inviato.');
-
-  if(shareAfter)await share(q);
-}
-
-async function share(q){
-  const url=quoteLink(q);
-  if(!url)return;
-  const text=`DB Plumbing Services — ${q.title||'Quotation'}`;
-  try{
-    if(navigator.share){
-      await navigator.share({title:'DB Plumbing Services — Quotation',text,url});
-      return;
-    }
-  }catch(e){
-    if(e?.name==='AbortError')return;
-  }
-  try{
-    await navigator.clipboard.writeText(url);
-    toast('Link del preventivo copiato.');
-  }catch{
-    prompt('Copia questo link:',url);
-  }
-}
-
-function decisionStatus(d){
-  if(d==='accepted')return'quote_accepted';
-  if(d==='rejected')return'quote_rejected';
-  if(d==='change_requested')return'quote_sent';
-  return'';
-}
-function decisionLabel(d){
-  if(d==='accepted')return'Accettato dal cliente';
-  if(d==='rejected')return'Rifiutato dal cliente';
-  if(d==='change_requested')return'Modifica richiesta';
-  return'';
-}
-
-async function syncOne(q,notify=false){
-  if(!q?.interactiveOwnerToken)return false;
-  let res;
-  try{
-    res=await rpc('interactive_quote_owner_get',{p_owner_token:q.interactiveOwnerToken});
-  }catch{return false}
-  if(!res?.ok)return false;
-
-  const nextDecision=res.decision||'';
-  const nextStatus=decisionStatus(nextDecision);
-  let changed=false;
-
-  if(nextDecision!==String(q.interactiveDecision||'')){q.interactiveDecision=nextDecision;changed=true}
-  if((res.message||'')!==String(q.interactiveMessage||'')){q.interactiveMessage=res.message||'';changed=true}
-  if((res.respondedAt||'')!==String(q.interactiveRespondedAt||'')){q.interactiveRespondedAt=res.respondedAt||'';changed=true}
-  if(Number(res.version||0)!==Number(q.interactiveVersion||0)){q.interactiveVersion=Number(res.version||0);changed=true}
-  if(nextStatus&&q.status!==nextStatus){q.status=nextStatus;changed=true}
-
-  if(changed){
-    await M.mPut('jobs',q);
-    if(notify&&nextDecision)toast(`Preventivo: ${decisionLabel(nextDecision)}.`);
-  }
-  return changed;
-}
-
-async function syncOneById(id,notify=false){
-  const q=await M.mOne('jobs',id);
-  return syncOne(q,notify);
-}
-
-async function syncAll(notify=false){
-  if(syncing)return false;
-  syncing=true;
-  try{
-    const all=(await M.mAll('jobs')).filter(q=>q?.interactiveOwnerToken && (String(q.status||'')==='quote'||String(q.status||'').startsWith('quote_')));
-    let changed=false;
-    for(const q of all) if(await syncOne(q,notify))changed=true;
-    return changed;
-  }finally{syncing=false}
-}
-
-async function backgroundSync(){
-  if(document.visibilityState!=='visible')return;
-  const changed=await syncAll(true);
-  if(changed&&document.getElementById('quotesV2')?.classList.contains('active')){
-    await baseRenderQuotes();
-    await decorate();
-  }
-}
-
-function responseTime(v){
-  if(!v)return'';
-  try{return new Intl.DateTimeFormat('it-IT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(v))}
-  catch{return''}
+function scheduleDecorate(){
+  if(decorateQueued)return;
+  decorateQueued=true;
+  setTimeout(async()=>{decorateQueued=false;await decorate()},0);
 }
 
 async function decorate(){
-  const el=document.getElementById('dbmQuoteList');
-  if(!el)return;
-  const quotes=Object.fromEntries((await M.mAll('jobs')).map(q=>[q.id,q]));
-
-  el.querySelectorAll('[data-quote]').forEach(row=>{
-    const q=quotes[row.dataset.quote];
-    if(!q)return;
-    const status=row.querySelector('.dbm-status');
-    if(q.interactiveDecision==='change_requested'&&status){
-      status.textContent='Modifica richiesta';
-      status.classList.add('quote_change_requested');
-    }
+  const rows=[...list.querySelectorAll('[data-quote]')];
+  if(!rows.length)return;
+  rows.forEach(row=>{
+    row.querySelectorAll('.dbm-iq-actions').forEach(x=>x.remove());
     const actions=row.querySelector('.dbm-flow-row-actions');
-    if(!actions||actions.querySelector('.dbm-iq-actions'))return;
-
+    if(!actions||actions.querySelector('.dbm-qpdf-actions'))return;
     const box=document.createElement('div');
-    box.className='dbm-iq-actions';
-    if(!q.interactivePublicToken){
-      box.innerHTML='<button type="button" class="secondary small" data-iq-create>Crea link cliente</button>';
-    }else{
-      const decision=q.interactiveDecision||'';
-      const updateLabel=decision==='change_requested'?'Invia preventivo aggiornato':'Aggiorna link';
-      box.innerHTML=`
-        <button type="button" class="secondary small" data-iq-share>Condividi link</button>
-        <button type="button" class="secondary small" data-iq-update>${updateLabel}</button>
-        <span class="dbm-iq-live">Interactive Quote</span>
-        <div class="dbm-iq-note">${decision?`<strong>${escapeHtml(decisionLabel(decision))}</strong>${q.interactiveRespondedAt?' · '+escapeHtml(responseTime(q.interactiveRespondedAt)):''}${q.interactiveMessage?' · '+escapeHtml(q.interactiveMessage):''}`:'In attesa della risposta del cliente.'}</div>
-      `;
-    }
+    box.className='dbm-qpdf-actions';
+    box.innerHTML=`
+      <button type="button" class="secondary small" data-qpdf-open>PDF / Stampa</button>
+      <button type="button" class="primary small" data-qpdf-share>Condividi PDF</button>
+      <div class="dbm-qpdf-note"><strong>Invio professionale:</strong> nessun link cliente e nessun pulsante Accetta/Rifiuta. Il preventivo viene condiviso come PDF.</div>
+    `;
     actions.appendChild(box);
   });
 }
 
-async function onQuoteAction(e){
-  const b=e.target.closest('[data-iq-create],[data-iq-share],[data-iq-update]');
+async function onAction(e){
+  const b=e.target.closest?.('[data-qpdf-open],[data-qpdf-share]');
   if(!b)return;
-  e.preventDefault();
-  e.stopPropagation();
   const row=b.closest('[data-quote]');
   if(!row)return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
   const q=await M.mOne('jobs',row.dataset.quote);
   if(!q)return;
-
   b.disabled=true;
   try{
-    if(b.hasAttribute('data-iq-create')) await publish(q,{shareAfter:false});
-    else if(b.hasAttribute('data-iq-share')) await share(q);
-    else if(b.hasAttribute('data-iq-update')){
-      const reset=q.interactiveDecision==='change_requested'||q.interactiveDecision==='rejected';
-      await publish(q,{resetResponse:reset,shareAfter:false});
-    }
+    if(b.hasAttribute('data-qpdf-open'))await openPdf(q);
+    else await sharePdf(q);
   }catch(err){
-    console.error('Interactive Quote',err);
-    alert('Interactive Quote non disponibile in questo momento. Nessun dato del preventivo è stato perso.');
+    console.error('Quotation PDF',err);
+    alert('Non riesco a creare il PDF in questo momento. Riprova tra qualche secondo.');
   }finally{b.disabled=false}
 }
 
-function escapeHtml(s){
-  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+function ensurePdfLib(){
+  if(window.jspdf?.jsPDF)return Promise.resolve(window.jspdf.jsPDF);
+  if(pdfLibPromise)return pdfLibPromise;
+  pdfLibPromise=new Promise((resolve,reject)=>{
+    const found=[...document.scripts].find(x=>x.src===PDF_CDN);
+    if(found){
+      if(window.jspdf?.jsPDF)return resolve(window.jspdf.jsPDF);
+      found.addEventListener('load',()=>resolve(window.jspdf.jsPDF),{once:true});
+      found.addEventListener('error',reject,{once:true});
+      return;
+    }
+    const s=document.createElement('script');
+    s.src=PDF_CDN;
+    s.async=true;
+    s.onload=()=>window.jspdf?.jsPDF?resolve(window.jspdf.jsPDF):reject(new Error('jsPDF unavailable'));
+    s.onerror=()=>reject(new Error('Unable to load PDF engine'));
+    document.head.appendChild(s);
+  });
+  return pdfLibPromise;
+}
+
+function loadLogoData(){
+  if(logoPromise)return logoPromise;
+  logoPromise=new Promise(async resolve=>{
+    try{
+      const r=await fetch(new URL('db-brand-mark.svg',location.href),{cache:'no-store'});
+      if(!r.ok)throw new Error('logo');
+      const svg=await r.text();
+      const blob=new Blob([svg],{type:'image/svg+xml'});
+      const url=URL.createObjectURL(blob);
+      const img=new Image();
+      img.onload=()=>{
+        try{
+          const canvas=document.createElement('canvas');
+          canvas.width=600;canvas.height=260;
+          const ctx=canvas.getContext('2d');
+          ctx.clearRect(0,0,canvas.width,canvas.height);
+          const scale=Math.min(canvas.width/img.width,canvas.height/img.height);
+          const w=img.width*scale,h=img.height*scale;
+          ctx.drawImage(img,(canvas.width-w)/2,(canvas.height-h)/2,w,h);
+          resolve(canvas.toDataURL('image/png'));
+        }catch{resolve('')}
+        URL.revokeObjectURL(url);
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);resolve('')};
+      img.src=url;
+    }catch{resolve('')}
+  });
+  return logoPromise;
+}
+
+function n(v){return Number(v||0)}
+function total(lines=[]){return lines.reduce((s,l)=>s+n(l.qty)*n(l.sell),0)}
+function money(v){return `€${n(v).toFixed(2)}`}
+function cleanText(v){return String(v??'').replace(/\s+\*\s+/g,'\n').trim()}
+function safeName(v){return String(v||'Client').replace(/[^a-z0-9_-]+/gi,'_').replace(/^_+|_+$/g,'').slice(0,48)||'Client'}
+function dateLabel(v){
+  if(!v)return'';
+  try{return new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric'}).format(new Date(`${v}T12:00:00`))}catch{return String(v)}
+}
+function refFor(q){
+  const year=String(q?.date||M.today()).slice(0,4)||String(new Date().getFullYear());
+  const tail=String(q?.id||'').replace(/[^a-z0-9]/gi,'').slice(-5).toUpperCase()||'QUOTE';
+  return `DB-${year}-${tail}`;
+}
+async function clientFor(q){
+  const clients=await M.clients();
+  return clients.find(c=>c.id===q.clientId)||{};
+}
+async function businessName(){return await M.setting('tradeName','DB Plumbing Services')||'DB Plumbing Services'}
+
+function split(doc,text,width){return doc.splitTextToSize(String(text||''),width)}
+function addPageHeader(doc,brand,ref){
+  doc.setFillColor(15,38,56);doc.rect(0,0,210,9,'F');
+  doc.setDrawColor(11,135,201);doc.setLineWidth(1.2);doc.line(18,26,192,26);
+  doc.setTextColor(16,42,67);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(brand,18,18);
+  doc.setTextColor(100,116,139);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`Quotation ${ref}`,192,18,{align:'right'});
+}
+function addFooter(doc,page,totalPages){
+  doc.setDrawColor(216,226,232);doc.setLineWidth(.35);doc.line(18,280,192,280);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.8);doc.setTextColor(71,85,105);
+  doc.text(`Dennis Bendinelli · DB Plumbing Services · ${PHONE} · ${EMAIL}`,18,286);
+  doc.text(`Page ${page} of ${totalPages}`,192,286,{align:'right'});
+}
+
+async function buildPdf(q){
+  const JS=await ensurePdfLib();
+  const [c,brand,logo]=await Promise.all([clientFor(q),businessName(),loadLogoData()]);
+  const doc=new JS({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+  const ref=refFor(q),sum=total(q.lines||[]);
+  const margin=18,right=192,width=174;
+  let y=18;
+
+  doc.setFillColor(15,38,56);doc.rect(0,0,210,10,'F');
+  if(logo){try{doc.addImage(logo,'PNG',18,17,31,14,undefined,'FAST')}catch{}}
+  doc.setTextColor(16,42,67);doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(brand,55,20.5);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(100,116,139);doc.text('Professional Plumbing & Property Maintenance · Malta',55,26);
+  doc.setFontSize(8);doc.text(`${PHONE}  ·  ${EMAIL}`,55,31.5);
+  doc.setDrawColor(11,135,201);doc.setLineWidth(1.1);doc.line(margin,38,right,38);
+
+  doc.setTextColor(16,42,67);doc.setFont('helvetica','bold');doc.setFontSize(24);doc.text('QUOTATION',margin,52);
+  doc.setFontSize(8);doc.setTextColor(100,116,139);doc.setFont('helvetica','bold');doc.text('REFERENCE',right,47,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setTextColor(16,42,67);doc.setFontSize(10);doc.text(ref,right,52,{align:'right'});
+  doc.setFontSize(8);doc.setTextColor(100,116,139);doc.text(dateLabel(q.date||M.today()),right,57,{align:'right'});
+
+  y=66;
+  doc.setFillColor(247,250,252);doc.roundedRect(margin,y,width,28,3,3,'F');
+  doc.setFont('helvetica','bold');doc.setTextColor(11,109,156);doc.setFontSize(7.8);doc.text('PREPARED FOR',margin+5,y+7);
+  doc.setTextColor(16,42,67);doc.setFontSize(11.5);doc.text(String(c.name||'Client'),margin+5,y+14);
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(71,85,105);
+  const clientSub=[q.location||c.location||'',c.phone||'',c.email||''].filter(Boolean).join(' · ');
+  if(clientSub)doc.text(split(doc,clientSub,width-10),margin+5,y+20,{maxWidth:width-10});
+
+  y+=38;
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(11,109,156);doc.text('SCOPE OF WORK',margin,y);
+  doc.setFontSize(14);doc.setTextColor(16,42,67);doc.text(split(doc,q.title||'Quotation',width),margin,y+7);
+  y+=18;
+
+  const rows=(q.lines||[]).filter(l=>cleanText(l.description)||n(l.sell));
+  const descX=margin,qtyX=148,unitX=166,amountX=right;
+  const drawTableHeader=()=>{
+    doc.setFillColor(15,38,56);doc.roundedRect(margin,y,width,9,2,2,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(7.6);
+    doc.text('DESCRIPTION',descX+3,y+5.8);doc.text('QTY',qtyX,y+5.8,{align:'center'});doc.text('UNIT',unitX,y+5.8,{align:'right'});doc.text('TOTAL',amountX-3,y+5.8,{align:'right'});
+    y+=11;
+  };
+  const newPage=()=>{doc.addPage();y=32;addPageHeader(doc,brand,ref);drawTableHeader()};
+  drawTableHeader();
+
+  for(const l of rows){
+    const desc=cleanText(l.description||'Item');
+    const lines=split(doc,desc,105);
+    const h=Math.max(12,lines.length*4.2+6);
+    if(y+h>255)newPage();
+    doc.setDrawColor(231,237,241);doc.setLineWidth(.25);doc.line(margin,y+h,right,y+h);
+    doc.setTextColor(16,42,67);doc.setFont('helvetica','normal');doc.setFontSize(9.2);doc.text(lines,descX+2,y+5);
+    doc.setFontSize(8.6);doc.setTextColor(71,85,105);doc.text(String(n(l.qty)||1),qtyX,y+5,{align:'center'});
+    doc.text(money(l.sell),unitX,y+5,{align:'right'});
+    doc.setFont('helvetica','bold');doc.setTextColor(16,42,67);doc.text(money(n(l.qty)*n(l.sell)),amountX-3,y+5,{align:'right'});
+    y+=h;
+  }
+
+  if(y+36>258){doc.addPage();y=32;addPageHeader(doc,brand,ref)}
+  y+=8;
+  doc.setDrawColor(16,42,67);doc.setLineWidth(.7);doc.line(120,y,right,y);
+  y+=8;
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(71,85,105);doc.text('Quotation total',120,y);
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(16,42,67);doc.text(money(sum),right,y,{align:'right'});
+
+  if(q.notes){
+    y+=14;
+    const notes=split(doc,cleanText(q.notes),width);
+    const h=notes.length*4.2+10;
+    if(y+h>263){doc.addPage();y=32;addPageHeader(doc,brand,ref)}
+    doc.setFillColor(247,250,252);doc.roundedRect(margin,y,width,h,2.5,2.5,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7.8);doc.setTextColor(11,109,156);doc.text('NOTES',margin+4,y+6);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(71,85,105);doc.text(notes,margin+4,y+12);
+    y+=h;
+  }
+
+  if(y+34>264){doc.addPage();y=32;addPageHeader(doc,brand,ref)}
+  y+=12;
+  doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(16,42,67);doc.text('Quotation terms',margin,y);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.8);doc.setTextColor(71,85,105);
+  const terms='This quotation covers the work and materials described above. Any additional work or materials will be discussed and agreed before proceeding.';
+  doc.text(split(doc,terms,width),margin,y+5);
+  doc.text(`DB Plumbing Services · ${PHONE} · ${EMAIL} · ${WEBSITE}`,margin,y+15);
+
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){doc.setPage(i);addFooter(doc,i,pages)}
+  return {doc,ref,client:c,filename:`DB_Plumbing_Quotation_${ref}_${safeName(c.name)}.pdf`};
+}
+
+async function openPdf(q){
+  const popup=window.open('about:blank','_blank');
+  if(!popup){alert('Safari ha bloccato la finestra. Consenti il popup e riprova.');return}
+  try{
+    popup.document.write('<title>Preparing PDF…</title><p style="font-family:-apple-system;padding:24px">Preparing quotation PDF…</p>');
+    const out=await buildPdf(q);
+    const url=URL.createObjectURL(out.doc.output('blob'));
+    popup.location.href=url;
+    setTimeout(()=>URL.revokeObjectURL(url),120000);
+  }catch(e){try{popup.close()}catch{};throw e}
+}
+
+async function sharePdf(q){
+  const out=await buildPdf(q);
+  const blob=out.doc.output('blob');
+  const file=new File([blob],out.filename,{type:'application/pdf'});
+  const text=`DB Plumbing Services — ${q.title||'Quotation'} — ${money(total(q.lines||[]))}`;
+  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+    try{
+      await navigator.share({title:`DB Plumbing Services — Quotation ${out.ref}`,text,files:[file]});
+      await markSent(q);
+      toast('PDF condiviso. Preventivo segnato come Inviato.');
+      return;
+    }catch(e){
+      if(e?.name==='AbortError')return;
+      console.warn('Native PDF share failed',e);
+    }
+  }
+  out.doc.save(out.filename);
+  toast('PDF creato. Aprilo da Download e condividilo come allegato.');
+}
+
+async function markSent(q){
+  if(q.status!=='quote')return;
+  q.status='quote_sent';
+  q.quoteSentAt=new Date().toISOString();
+  await M.mPut('jobs',q);
+  await baseRenderQuotes();
+  await decorate();
 }
 
 function toast(msg){
-  document.querySelector('.dbm-iq-toast')?.remove();
-  const d=document.createElement('div');
-  d.className='dbm-iq-toast';
-  d.textContent=msg;
-  document.body.appendChild(d);
-  setTimeout(()=>d.remove(),3200);
+  document.querySelector('.dbm-qpdf-toast')?.remove();
+  const d=document.createElement('div');d.className='dbm-qpdf-toast';d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),3200);
 }
 
 wait();
