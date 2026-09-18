@@ -2,7 +2,7 @@
   "source": "Meta Ads via Windsor.ai",
   "account": "Dennis Bendinelli",
   "accountId": "286930198114293",
-  "syncedAt": "2026-09-18T06:16:43+02:00",
+  "syncedAt": "2026-09-18T10:19:10+02:00",
   "dateFrom": "2026-09-05",
   "dateTo": "2026-09-18",
   "campaigns": [
@@ -66,11 +66,11 @@
       "platformStatus": "ACTIVE",
       "start": "2026-09-15",
       "end": "2026-09-22",
-      "spend": 8.44,
-      "impressions": 1631,
-      "clicks": 37,
-      "ctr": 0.0226854690,
-      "cpc": 0.2281081081,
+      "spend": 10.76,
+      "impressions": 2052,
+      "clicks": 43,
+      "ctr": 0.0209551657,
+      "cpc": 0.2502325581,
       "reportedLeads": null,
       "reportedMessagingConversations": null
     }
