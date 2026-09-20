@@ -2,7 +2,7 @@
   "source": "Meta Ads via Windsor.ai",
   "account": "Dennis Bendinelli",
   "accountId": "286930198114293",
-  "syncedAt": "2026-09-20T18:15:11+02:00",
+  "syncedAt": "2026-09-20T22:14:11+02:00",
   "dateFrom": "2026-09-05",
   "dateTo": "2026-09-20",
   "campaigns": [
@@ -46,7 +46,7 @@
       "channel": "Facebook Ads",
       "objective": "LEAD_GENERATION",
       "status": "real",
-      "platformStatus": "ACTIVE",
+      "platformStatus": "PAUSED",
       "start": "2026-09-11",
       "end": "2026-09-18",
       "spend": 16.72,
